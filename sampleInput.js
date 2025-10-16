@@ -3,7 +3,7 @@
 import { MongoClient } from "mongodb";
 
 // Replace with your actual MongoDB Atlas connection string
-const uri = "mongodb+srv://ngonzalezimportant_db_user:rcpf1dPlPDeDxhRn@astroquizzer.roctnxk.mongodb.net/?retryWrites=true&w=majority&appName=AstroQuizzer";
+const uri = process.env.mongo_db_string;
 
 const client = new MongoClient(uri);
 
