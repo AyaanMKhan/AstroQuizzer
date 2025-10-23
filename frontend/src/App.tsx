@@ -1,35 +1,41 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useEffect, useState } from "react";
 
-function App() {
-  const [count, setCount] = useState(0)
+const App: React.FC = () => {
+  const [message, setMessage] = useState<string>(""); // To store the backend response
+  const [error, setError] = useState<string | null>(null); // To store any error message
+
+  useEffect(() => {
+    const fetchMessage = async () => {
+      try {
+        const response = await fetch("http://localhost:5001/"); // Backend URL
+
+        // Check if the response is not OK (status code outside 200-299)
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.text(); // Assuming the backend sends plain text
+        setMessage(data); // Set the response message in state
+        setError(null); // Clear any previous errors
+      } catch (err: any) {
+        console.error("Error fetching data:", err);
+        setError("Failed to fetch data from the backend. Please try again later.");
+      }
+    };
+
+    fetchMessage();
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more, i have changed this to make sure it works - Ayaan
-      </p>
-    </>
-  )
-}
+    <div>
+      <h1>Frontend</h1>
+      {error ? (
+        <p style={{ color: "red" }}>{error}</p> // Display error message in red
+      ) : (
+        <p>{message}</p> // Display the backend message
+      )}
+    </div>
+  );
+};
 
-export default App
+export default App;
