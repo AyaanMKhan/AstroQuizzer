@@ -1,0 +1,91 @@
+.navbar {
+  background: #fff;
+  padding: 1rem 0;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.nav-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 3rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-logo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a1a;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-logo::before {
+  content: 'K';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.nav-buttons {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.nav-btn {
+  padding: 0.5rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.3s;
+}
+
+.signin-btn {
+  background: transparent;
+  color: #1a1a1a;
+}
+
+.signin-btn:hover {
+  background: #f5f5f5;
+}
+
+.signup-btn {
+  background: #2563eb;
+  color: white;
+}
+
+.signup-btn:hover {
+  background: #1d4ed8;
+}
+
+.home-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 6rem 3rem;
+  text-align: center;
+}
+
+.home-content h1 {
+  font-size: 3.5rem;
+  margin-bottom: 1.5rem;
+  color: #1a1a1a;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.home-content p {
+  font-size: 1.25rem;
+  color: #666;
+}
