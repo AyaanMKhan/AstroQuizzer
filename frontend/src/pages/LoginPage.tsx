@@ -26,7 +26,7 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
               Login
             </button>
           </form>
-          <div className="forgot-link">
+          <div className="forgot">
             <button type="button" onClick={onForgotPasswordClick}>
               Forgot Password?
             </button>

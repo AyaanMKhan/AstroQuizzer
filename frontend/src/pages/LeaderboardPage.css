@@ -55,6 +55,28 @@
   transition: all 0.3s;
 }
 
+.leaderboard {
+  background: transparent;
+  color: #94a3b8;
+}
+
+.leaderboard:hover,
+.leaderboard.active {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+.profile {
+  background: transparent;
+  color: #94a3b8;
+}
+
+.profile:hover,
+.profile.active {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
 .sign-in {
   background: transparent;
   color: #94a3b8;
@@ -74,46 +96,78 @@
   background: #3b82f6;
 }
 
-.leaderboard {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.leaderboard:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.profile {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.profile:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
 .content {
-  max-width: 1400px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 6rem 3rem;
-  text-align: center;
+  padding: 3rem;
 }
 
 .content h1 {
-  font-size: 3.5rem;
-  margin-bottom: 1.5rem;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
   color: #ffffff;
   font-weight: 700;
-  line-height: 1.1;
+  text-align: center;
   position: relative;
   z-index: 1;
 }
 
-.content p {
-  font-size: 1.25rem;
-  color: #cbd5e1;
+.table {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  border: 1px solid #1e3a5f;
   position: relative;
   z-index: 1;
 }
+
+.header {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px;
+  padding: 1rem 1.5rem;
+  background: #020617;
+  border-bottom: 1px solid #1e293b;
+  font-weight: 600;
+  color: #94a3b8;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 80px 1fr 120px;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #1e293b;
+  transition: background 0.2s;
+}
+
+.row:hover {
+  background: #020617;
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.col {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.col:first-of-type {
+  color: #e2e8f0;
+}
+
+.col:nth-of-type(2) {
+  font-weight: 400;
+  color: #cbd5e1;
+}
+
+.col:last-of-type {
+  color: #60a5fa;
+  text-align: right;
+}
+

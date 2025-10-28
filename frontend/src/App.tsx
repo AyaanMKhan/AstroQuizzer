@@ -3,17 +3,21 @@ import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CreateAccountPage from './pages/CreateAccountPage';
+import LeaderboardPage from './pages/LeaderboardPage';
+import ProfilePage from './pages/ProfilePage';
 
 export default function App() {
   const navigate = useNavigate();
 
   return (
-    <div>
+    <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
       <Routes>
         <Route path="/" element={
           <HomePage 
             onSignInClick={() => navigate('/login')}
             onSignUpClick={() => navigate('/signup')}
+            onLeaderboardClick={() => navigate('/leaderboard')}
+            onProfileClick={() => navigate('/profile')}
           />
         } />
         <Route path="/login" element={
@@ -24,6 +28,8 @@ export default function App() {
         } />
         <Route path="/signup" element={<CreateAccountPage onSignInClick={() => navigate('/login')} />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/leaderboard" element={<LeaderboardPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
       </Routes>
     </div>
   );

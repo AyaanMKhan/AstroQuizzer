@@ -1,23 +1,30 @@
+import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
 
 interface HomePageProps {
   onSignInClick: () => void;
   onSignUpClick: () => void;
+  onLeaderboardClick: () => void;
+  onProfileClick: () => void;
 }
 
-export default function HomePage({ onSignInClick, onSignUpClick }: HomePageProps) {
+export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardClick, onProfileClick }: HomePageProps) {
+  const navigate = useNavigate();
+
   return (
     <div>
       <nav className="navbar">
-        <div className="nav-container">
-          <div className="nav-logo">AstroQuizzer</div>
-          <div className="nav-buttons">
-            <button className="nav-btn signin-btn" onClick={onSignInClick}>Sign In</button>
-            <button className="nav-btn signup-btn" onClick={onSignUpClick}>Sign Up</button>
+        <div className="nav">
+          <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
+          <div className="btns">
+            <button className="btn leaderboard" onClick={onLeaderboardClick}>Leaderboard</button>
+            <button className="btn profile" onClick={onProfileClick}>Profile</button>
+            <button className="btn sign-in" onClick={onSignInClick}>Sign In</button>
+            <button className="btn sign-up" onClick={onSignUpClick}>Sign Up</button>
           </div>
         </div>
       </nav>
-      <div className="home-content">
+      <div className="content">
         <h1>Welcome to AstroQuizzer</h1>
         <p>Test your astronomical knowledge with our interactive quizzes!</p>
       </div>

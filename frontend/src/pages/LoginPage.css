@@ -4,7 +4,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,17 +12,21 @@
 }
 
 .modal {
-  background: #1a1a1a;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
   border-radius: 12px;
   width: 90%;
   max-width: 450px;
   padding: 0;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  border: 1px solid #1e3a5f;
+  position: relative;
+  z-index: 100;
 }
 
 .tabs {
   display: flex;
-  background: #0f0f0f;
+  background: #020617;
   border-radius: 12px 12px 0 0;
   transition: all 0.3s ease;
 }
@@ -34,16 +38,18 @@
   cursor: pointer;
   transition: all 0.3s;
   border-radius: 12px 12px 0 0;
-  color: #fff;
+  color: #94a3b8;
   font-weight: 500;
 }
 
 .tab.active {
-  background: #1a1a1a;
+  background: #0f172a;
+  color: #e2e8f0;
 }
 
 .tab:hover {
-  background: #252525;
+  background: #1e293b;
+  color: #e2e8f0;
 }
 
 .content {
@@ -59,40 +65,42 @@
 .input {
   width: 100%;
   padding: 0.75rem;
-  background: #0f0f0f;
-  border: 1px solid #2a2a2a;
-  border-radius: 8px;
-  color: #fff;
+  background: #020617;
+  border: 1.5px solid #3b82f6;
+  border-radius: 10px;
+  color: #e2e8f0;
   font-size: 0.95rem;
-  transition: border-color 0.3s;
+  transition: all 0.3s;
 }
 
 .input:focus {
   outline: none;
-  border-color: #ff6b35;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .input::placeholder {
-  color: #666;
+  color: #475569;
 }
 
 .btn {
   width: 100%;
   padding: 0.875rem 1.5rem;
-  background: linear-gradient(90deg, #ff6b35 0%, #ff8c42 100%);
+  background: #2563eb;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   color: white;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
   margin-top: 0.5rem;
 }
 
 .btn:hover {
+  background: #3b82f6;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
 }
 
 .btn:active {
@@ -114,15 +122,15 @@
   animation: fadeIn 0.3s ease-out;
 }
 
-.forgot-link {
+.forgot {
   margin-top: 1rem;
   text-align: center;
 }
 
-.forgot-link button {
+.forgot button {
   background: none;
   border: none;
-  color: #ff6b35;
+  color: #60a5fa;
   cursor: pointer;
   font-size: 0.875rem;
   padding: 0.5rem;
@@ -130,5 +138,5 @@
 }
 
 .forgot-link button:hover {
-  color: #ff8c42;
+  color: #93c5fd;
 }
