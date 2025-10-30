@@ -1,45 +1,123 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './LeaderboardPage.css';
 
+type LeaderboardRow = {
+  rank: number;
+  username: string;
+  totalScore: number;
+};
+
+type LeaderboardUser = {
+  username: string;
+  score: number;
+  rank: number;
+} | null;
+
 export default function LeaderboardPage() {
   const navigate = useNavigate();
-  const leaderboardData = [
-    { rank: 1, name: 'John Doe', score: 980 },
-    { rank: 2, name: 'Jane Smith', score: 950 },
-    { rank: 3, name: 'Bob Johnson', score: 920 },
-    { rank: 4, name: 'Alice Williams', score: 890 },
-    { rank: 5, name: 'Charlie Brown', score: 870 },
-  ];
+  const [rows, setRows] = useState<LeaderboardRow[]>([]);
+  const [currentUser, setCurrentUser] = useState<LeaderboardUser>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('aq_user');
+
+  const API_BASE = 'http://localhost:5001';
+
+  useEffect(() => {
+    async function load() {
+      setError('');
+      setLoading(true);
+      try {
+        const stored = localStorage.getItem('aq_user');
+        const parsed = stored ? JSON.parse(stored) : null;
+        const body = parsed?.id ? { _id: parsed.id } : {};
+        const res = await fetch(`${API_BASE}/api/leaderboard`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          setError(data.error || 'Failed to load leaderboard');
+          return;
+        }
+        setRows((data.topHundred || []) as LeaderboardRow[]);
+        setCurrentUser((data.user || null) as LeaderboardUser);
+      } catch (e) {
+        setError('Network error. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
 
   return (
     <div>
       <nav className="navbar">
         <div className="nav">
-          <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
+          <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
             <button className="btn leaderboard active">Leaderboard</button>
             <button className="btn profile" onClick={() => navigate('/profile')}>Profile</button>
-            <button className="btn sign-in">Sign In</button>
-            <button className="btn sign-up">Sign Up</button>
+            {isLoggedIn ? (
+              <button
+                className="btn sign-in"
+                onClick={() => { try { localStorage.removeItem('aq_user'); } catch {}; navigate('/login'); }}
+              >
+                Logout
+              </button>
+            ) : (
+              <>
+                <button className="btn sign-in" onClick={() => navigate('/login')}>Sign In</button>
+                <button className="btn sign-up" onClick={() => navigate('/signup')}>Sign Up</button>
+              </>
+            )}
           </div>
         </div>
       </nav>
       <div className="content">
         <h1>Leaderboard</h1>
-        <div className="table">
-          <div className="header">
-            <span className="col">Rank</span>
-            <span className="col">Player</span>
-            <span className="col">Score</span>
-          </div>
-          {leaderboardData.map((player) => (
-            <div key={player.rank} className="row">
-              <span className="col">{player.rank}</span>
-              <span className="col">{player.name}</span>
-              <span className="col">{player.score}</span>
+
+        {currentUser && (
+          <div className="card" style={{ marginBottom: 16 }}>
+            <div className="header">
+              <div className="avatar">{currentUser.username.slice(0,2).toUpperCase()}</div>
+              <h2>{currentUser.username}</h2>
             </div>
-          ))}
-        </div>
+            <div className="stats">
+              <div className="stat">
+                <div className="val">#{currentUser.rank}</div>
+                <div className="lbl">Rank</div>
+              </div>
+              <div className="stat">
+                <div className="val">{currentUser.score}</div>
+                <div className="lbl">Score</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {error && <div style={{ color: '#e33', marginBottom: 12 }}>{error}</div>}
+        {loading ? (
+          <div>Loading...</div>
+        ) : (
+          <div className="table">
+            <div className="header">
+              <span className="col">Rank</span>
+              <span className="col">Player</span>
+              <span className="col">Score</span>
+            </div>
+            {rows.map((player) => (
+              <div key={player.rank} className="row">
+                <span className="col">{player.rank}</span>
+                <span className="col">{player.username}</span>
+                <span className="col">{player.totalScore}</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

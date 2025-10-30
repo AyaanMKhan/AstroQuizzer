@@ -35,8 +35,15 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
         setError(data.error || 'Login failed');
         return;
       }
-      // Optionally store minimal user info; for now just navigate
-      navigate('/profile');
+      try {
+        localStorage.setItem('aq_user', JSON.stringify({
+          id: data.id,
+          username,
+          firstName: data.firstName || '',
+          lastName: data.lastName || ''
+        }));
+      } catch {}
+      navigate('/home');
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {

@@ -1,6 +1,6 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
-import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
+import HomePage from './pages/HomePage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CreateAccountPage from './pages/CreateAccountPage';
 import LeaderboardPage from './pages/LeaderboardPage';
@@ -13,6 +13,12 @@ export default function App() {
     <div style={{ position: 'relative', zIndex: 1, minHeight: '100vh' }}>
       <Routes>
         <Route path="/" element={
+          <LoginPage 
+            onSignUpClick={() => navigate('/signup')}
+            onForgotPasswordClick={() => navigate('/forgot-password')}
+          />
+        } />
+        <Route path="/home" element={
           <HomePage 
             onSignInClick={() => navigate('/login')}
             onSignUpClick={() => navigate('/signup')}

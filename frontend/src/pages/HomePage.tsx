@@ -10,17 +10,29 @@ interface HomePageProps {
 
 export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardClick, onProfileClick }: HomePageProps) {
   const navigate = useNavigate();
+  const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('aq_user');
 
   return (
     <div>
       <nav className="navbar">
         <div className="nav">
-          <div className="logo" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
+          <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
             <button className="btn leaderboard" onClick={onLeaderboardClick}>Leaderboard</button>
             <button className="btn profile" onClick={onProfileClick}>Profile</button>
-            <button className="btn sign-in" onClick={onSignInClick}>Sign In</button>
-            <button className="btn sign-up" onClick={onSignUpClick}>Sign Up</button>
+            {isLoggedIn ? (
+              <button
+                className="btn sign-in"
+                onClick={() => { try { localStorage.removeItem('aq_user'); } catch {}; navigate('/login'); }}
+              >
+                Logout
+              </button>
+            ) : (
+              <>
+                <button className="btn sign-in" onClick={onSignInClick}>Sign In</button>
+                <button className="btn sign-up" onClick={onSignUpClick}>Sign Up</button>
+              </>
+            )}
           </div>
         </div>
       </nav>
