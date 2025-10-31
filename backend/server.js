@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -70,10 +70,7 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const rounds = parseInt(process.env.bcrypt_rounds || "12", 10);
-    const passwordHash = await bcrypt.hash(password, rounds);
-
-    const u = await User.create({username, email, firstName, lastName, passwordHash, verified: false, quizzesTaken: 0, totalScore: 0, favoriteSign: favoriteSign || "Pisces"});
+    const u = await User.create({username, email, firstName, lastName, password, verified: false, quizzesTaken: 0, totalScore: 0, favoriteSign: favoriteSign || "Pisces"});
 
     return res.status(200).json({
       id: u._id,
@@ -100,32 +97,24 @@ app.post("/api/login", async (req, res) => {
       return res.status(400).json({error: "Missing username or password"});
     }
 
-    // only need for plaintext passwords
     const user = await User.findOne({username: String(username).trim() }).select("+password");
     if (!user) return res.status(400).json({error: "Incorrect username or password"});
 
-    let ok = false;
-    if (user.passwordHash) {
-      ok = await bcrypt.compare(password, user.passwordHash);
-    } else if (user.password) {
-      // plaintext into password hash
-      ok = user.password === password;
-      if (ok) {
-        const rounds = parseInt(process.env.BCRYPT_ROUNDS || "12", 10);
-        user.passwordHash = await bcrypt.hash(password, rounds);
-        user.password = undefined;
-        await user.save();
-      }
+    if(!user.verified) return res.status(400).json({error: "Email unverified"});
+
+    //json token stuff
+    try
+    {
+      const token = require("./createJWT.js");
+      ret = token.createToken( user.firstName, user.lastName, user._id);
+    }
+    catch(e)
+    {
+      ret = {error:e.message};
     }
 
-    if (!ok) return res.status(400).json({error: "Incorrect username or password"});
+    return res.status(200).json(ret);
 
-    return res.status(200).json({
-      id: user._id,
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
-      error: ""
-    });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({error: "Server error"});
