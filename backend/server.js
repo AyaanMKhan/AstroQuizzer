@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer"
 
 dotenv.config();
 
@@ -71,6 +72,39 @@ app.post("/api/register", async (req, res) => {
     }
 
     const u = await User.create({username, email, firstName, lastName, password, verified: false, quizzesTaken: 0, totalScore: 0, favoriteSign: favoriteSign || "Pisces"});
+
+
+        const verificationToken = jwt.sign(
+      { email },
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
+
+    // Email verification link (frontend route can call backend verify endpoint)
+    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
+
+    // Configure transporter (example using Gmail, but you can use SendGrid, SES, etc.)
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: `"Your App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Verify your email address",
+      html: `
+        <h2>Welcome, ${firstName}!</h2>
+        <p>Please verify your email by clicking the link below:</p>
+        <a href="${verifyLink}" target="_blank">Verify Email</a>
+        <p>This link will expire in 24 hours.</p>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
 
     return res.status(200).json({
       id: u._id,
