@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
+import Globe from '../components/Globe';
 
 interface HomePageProps {
   onSignInClick: () => void;
@@ -39,6 +40,9 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
       <div className="content">
         <h1>Welcome to AstroQuizzer</h1>
         <p>Test your astronomical knowledge with our interactive quizzes!</p>
+        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Globe />
+        </div>
       </div>
     </div>
   );
