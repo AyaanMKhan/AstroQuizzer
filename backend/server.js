@@ -124,9 +124,6 @@ app.post("/api/login", async (req, res) => {
 app.post('/api/leaderboard', async (req, res) => {
   try {
     const { _id } = req.body || {};
-    if (!_id) {
-      return res.status(400).json({ error: "Missing id" });
-    }
 
     const users = await User.find({}, { username: 1, totalScore: 1 })
                             .sort({ totalScore: -1 })
@@ -140,24 +137,56 @@ app.post('/api/leaderboard', async (req, res) => {
 
     const topHundred = leaderboard.slice(0,100);
 
-    const userIndex = users.findIndex(u => u._id.toString() === _id);
-    if (userIndex === -1) {
-      return res.status(404).json({ error: 'User not found' });
+    let responseUser = null;
+    if (_id) {
+      const userIndex = users.findIndex(u => u._id.toString() === _id);
+      if (userIndex !== -1) {
+        const u = users[userIndex];
+        responseUser = {
+          username: u.username,
+          score: u.totalScore,
+          rank: userIndex + 1
+        };
+      }
     }
-
-    const user = users[userIndex];
 
     res.status(200).json({
       topHundred,
-      user: {
-        username: user.username,
-        score: user.totalScore,
-        rank: userIndex + 1
-      }
+      user: responseUser
     });
   } catch (err) {
     console.error("Leaderboard error:", err);
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// API Get User Profile (with rank)
+app.get('/api/user/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) return res.status(400).json({ error: 'Missing id' });
+
+    const user = await User.findById(id).lean();
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const users = await User.find({}, { _id: 1, totalScore: 1 }).sort({ totalScore: -1 }).lean();
+    const userIndex = users.findIndex(u => u._id.toString() === id);
+    const rank = userIndex === -1 ? null : userIndex + 1;
+
+    return res.status(200).json({
+      id: user._id,
+      username: user.username,
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
+      email: user.email,
+      totalScore: user.totalScore || 0,
+      quizzesTaken: user.quizzesTaken || 0,
+      favoriteSign: user.favoriteSign || 'Pisces',
+      rank
+    });
+  } catch (err) {
+    console.error('User profile error:', err);
+    return res.status(500).json({ error: 'Server error' });
   }
 });
 
