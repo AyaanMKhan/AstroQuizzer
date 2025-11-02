@@ -59,6 +59,7 @@ export default function LeaderboardPage() {
         <div className="nav">
           <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
+            <button className="btn apod" onClick={() => navigate('/apod')}>Today's Picture</button>
             <button className="btn leaderboard active">Leaderboard</button>
             <button className="btn profile" onClick={() => navigate('/profile')}>Profile</button>
             {isLoggedIn ? (
