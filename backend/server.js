@@ -98,14 +98,14 @@ app.post("/api/register", async (req, res) => {
 // Login
 app.post("/api/login", async (req, res) => {
   try {
-    const { username, password } = req.body || {};
-    if (!username || !password) {
-      return res.status(400).json({ error: "Missing username or password" });
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ error: "Missing email or password" });
     }
 
-    const user = await User.findOne({ username: String(username).trim() }).select("+password");
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() }).select("+password");
     if (!user) {
-      return res.status(400).json({ error: "Incorrect username or password" });
+      return res.status(400).json({ error: "Incorrect email or password" });
     }
 
     let isValid = false;
@@ -122,7 +122,7 @@ app.post("/api/login", async (req, res) => {
     }
 
     if (!isValid) {
-      return res.status(400).json({ error: "Incorrect username or password" });
+      return res.status(400).json({ error: "Incorrect email or password" });
     }
 
     return res.status(200).json({
