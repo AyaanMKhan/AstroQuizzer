@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema({
   email:        { type: String, required: true, unique: true, trim: true, lowercase: true },
   firstName:    { type: String, required: true },
   lastName:     { type: String, required: true },
-  passwordHash: { type: String, required: true },
   //default fields
   verified:     { type: Boolean, default: false },
   quizzesTaken: { type: Number, default: 0, min: 0 },
