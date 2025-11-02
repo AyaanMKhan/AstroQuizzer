@@ -157,7 +157,22 @@ app.post("/api/login", async (req, res) => {
 
 app.post('/api/leaderboard', async (req, res) => {
   try {
-    const { _id } = req.body || {};
+    const { _id, jwtToken } = req.body || {};
+
+    var token = require('./createJWT.js');
+    try
+    {
+      if( token.isExpired(jwtToken))
+      {
+        var r = {error:'The JWT is no longer valid', jwtToken: ''};
+        res.status(200).json(r);
+        return;
+      }
+    }
+    catch(e)
+    {
+      console.log(e.message);
+    }
 
     const users = await User.find({}, { username: 1, totalScore: 1 })
                             .sort({ totalScore: -1 })
@@ -184,9 +199,20 @@ app.post('/api/leaderboard', async (req, res) => {
       }
     }
 
+    var refreshedToken = null;
+    try
+    {
+      refreshedToken = token.refresh(jwtToken);
+    }
+    catch(e)
+    {
+      console.log(e.message);
+    }
+
     res.status(200).json({
       topHundred,
-      user: responseUser
+      user: responseUser,
+      jwtToken: refreshedToken
     });
   } catch (err) {
     console.error("Leaderboard error:", err);
@@ -197,8 +223,23 @@ app.post('/api/leaderboard', async (req, res) => {
 // API Get User Profile (with rank)
 app.get('/api/user/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id, jwtToken } = req.params;
     if (!id) return res.status(400).json({ error: 'Missing id' });
+
+    var token = require('./createJWT.js');
+    try
+    {
+      if( token.isExpired(jwtToken))
+      {
+        var r = {error:'The JWT is no longer valid', jwtToken: ''};
+        res.status(200).json(r);
+        return;
+      }
+    }
+    catch(e)
+    {
+      console.log(e.message);
+    }
 
     const user = await User.findById(id).lean();
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -206,6 +247,16 @@ app.get('/api/user/:id', async (req, res) => {
     const users = await User.find({}, { _id: 1, totalScore: 1 }).sort({ totalScore: -1 }).lean();
     const userIndex = users.findIndex(u => u._id.toString() === id);
     const rank = userIndex === -1 ? null : userIndex + 1;
+
+    var refreshedToken = null;
+    try
+    {
+      refreshedToken = token.refresh(jwtToken);
+    }
+    catch(e)
+    {
+      console.log(e.message);
+    }
 
     return res.status(200).json({
       id: user._id,
@@ -216,7 +267,8 @@ app.get('/api/user/:id', async (req, res) => {
       totalScore: user.totalScore || 0,
       quizzesTaken: user.quizzesTaken || 0,
       favoriteSign: user.favoriteSign || 'Pisces',
-      rank
+      rank,
+      jwtToken: refreshedToken
     });
   } catch (err) {
     console.error('User profile error:', err);
