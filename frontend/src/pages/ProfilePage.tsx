@@ -60,6 +60,7 @@ export default function ProfilePage() {
         <div className="nav">
           <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
+            <button className="btn apod" onClick={() => navigate('/apod')}>Today's Picture</button>
             <button className="btn leaderboard" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
             <button className="btn profile active">Profile</button>
             {isLoggedIn ? (

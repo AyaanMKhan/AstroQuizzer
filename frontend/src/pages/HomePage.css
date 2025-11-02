@@ -25,20 +25,6 @@
   gap: 0.5rem;
 }
 
-.logo::before {
-  content: 'K';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  background: #3b82f6;
-  color: #fff;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 1rem;
-}
-
 .btns {
   display: flex;
   gap: 1rem;
@@ -72,6 +58,16 @@
 
 .sign-up:hover {
   background: #3b82f6;
+}
+
+.apod {
+  background: transparent;
+  color: #94a3b8;
+}
+
+.apod:hover {
+  background: #1e293b;
+  color: #e2e8f0;
 }
 
 .leaderboard {
@@ -116,4 +112,67 @@
   color: #cbd5e1;
   position: relative;
   z-index: 1;
+}
+
+.feature-card {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid #1e3a5f;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s;
+  max-width: 300px;
+  position: relative;
+  z-index: 1;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.feature-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: block;
+}
+
+.feature-card h3 {
+  font-size: 1.5rem;
+  color: #ffffff;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+}
+
+.feature-card p {
+  font-size: 1rem;
+  color: #cbd5e1;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.feature-btn {
+  padding: 0.75rem 1.5rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  width: 100%;
+}
+
+.feature-btn:hover {
+  background: #3b82f6;
+  transform: scale(1.02);
+}
+
+@media (max-width: 768px) {
+  .feature-card {
+    max-width: 100%;
+    margin-bottom: 1.5rem;
+  }
 }
