@@ -74,7 +74,7 @@ app.post("/api/register", async (req, res) => {
     const u = await User.create({username, email, firstName, lastName, password, verified: false, quizzesTaken: 0, totalScore: 0, favoriteSign: favoriteSign || "Pisces"});
 
 
-        const verificationToken = jwt.sign(
+    const verificationToken = jwt.sign(
       { email },
       process.env.JWT_SECRET,
       { expiresIn: "1d" }
