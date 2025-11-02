@@ -3,68 +3,56 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
-import Apod from "./models/Apod.js";
+import User from "./models/User.js";
+import { fetchAndStoreApod } from "./utils/apodFetcher.js";
 import { initApodCron } from "./cron/apodCron.js";
 
 dotenv.config();
 
 const app = express();
-const PORT = 5001;
-const MONGO_URI = process.env.mongo_db_string;
-const DB_NAME = process.env.mongo_db_name || "astroquizzer";
+const PORT = process.env.PORT || 5001;
+const MONGO_URI = process.env.MONGO_DB_STRING || process.env.mongo_db_string;
+const DB_NAME = process.env.MONGO_DB_NAME || process.env.mongo_db_name || "astroquizzer";
+const BCRYPT_ROUNDS = parseInt(process.env.BCRYPT_ROUNDS || process.env.bcrypt_rounds || "12", 10);
 
-app.use(cors({origin: "*"})); // tighten later: ["https://astroquizzer.xyz"]
+// Middleware
+app.use(cors({ origin: "*" })); // TODO: Tighten to specific origins in production
 app.use(express.json());
 
-// connect Mongo
+// MongoDB Connection
 if (!MONGO_URI) {
-  console.error("Missing mongo_db_string in .env");
+  console.error("❌ Missing MONGO_DB_STRING in .env");
   process.exit(1);
 }
+
 try {
-  await mongoose.connect(MONGO_URI, { dbName: DB_NAME, serverSelectionTimeoutMS: 15000, family: 4});
-  console.log("MongoDB connected");
+  await mongoose.connect(MONGO_URI, {
+    dbName: DB_NAME,
+    serverSelectionTimeoutMS: 15000,
+    family: 4
+  });
+  console.log("✅ MongoDB connected");
 } catch (err) {
-  console.error("Mongo connect error:", err);
+  console.error("❌ MongoDB connection error:", err.message);
   process.exit(1);
 }
-
-// model
-const userSchema = new mongoose.Schema({
-  username:     {type: String, required: true, unique: true, trim: true },
-  email:        { type: String, required: true, unique: true, trim: true, lowercase: true },
-  firstName:    { type: String, required: true },
-  lastName:     { type: String, required: true },
-  passwordHash: { type: String, required: true },
-  //default fields
-  verified:     { type: Boolean, default: false },
-  quizzesTaken: { type: Number, default: 0, min: 0 },
-  totalScore:   { type: Number, default: 0, min: 0 },
-  favoriteSign: {
-    type: String,
-    default: "Pisces",
-    //locks to known signs
-    enum: [
-      "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
-      "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"
-    ]
-  },
-  // for old plaintext passwords
-  password:     { type: String, select: false }
-}, {timestamps: true});
-
-const User = mongoose.model("User", userSchema);
 
 // Initialize NASA APOD cron job
 initApodCron();
 
-// API Register
+// ============================================================================
+// API Routes
+// ============================================================================
+
+// Register
 app.post("/api/register", async (req, res) => {
   try {
     let { username, password, firstName, lastName, email, favoriteSign } = req.body || {};
+    
     if (!username || !password || !firstName || !lastName || !email) {
       return res.status(400).json({ error: "All fields are required" });
     }
+
     username = String(username).trim();
     email = String(email).trim().toLowerCase();
 
@@ -75,55 +63,66 @@ app.post("/api/register", async (req, res) => {
       });
     }
 
-    const rounds = parseInt(process.env.bcrypt_rounds || "12", 10);
-    const passwordHash = await bcrypt.hash(password, rounds);
+    const passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
-    const u = await User.create({username, email, firstName, lastName, passwordHash, verified: false, quizzesTaken: 0, totalScore: 0, favoriteSign: favoriteSign || "Pisces"});
+    const user = await User.create({
+      username,
+      email,
+      firstName,
+      lastName,
+      passwordHash,
+      verified: false,
+      quizzesTaken: 0,
+      totalScore: 0,
+      favoriteSign: favoriteSign || "Pisces"
+    });
 
     return res.status(200).json({
-      id: u._id,
-      username: u.username,
-      firstName: u.firstName,
-      lastName: u.lastName,
+      id: user._id,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
       error: ""
     });
   } catch (err) {
     if (err?.code === 11000) {
       const key = Object.keys(err.keyPattern || {})[0] || "field";
-      return res.status(400).json({error: `${key} already in use`});
+      return res.status(400).json({ error: `${key} already in use` });
     }
-    console.error("Register error:", err);
-    return res.status(500).json({error: "Server error"});
+    console.error("❌ Register error:", err.message);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-// API Login
+// Login
 app.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body || {};
     if (!username || !password) {
-      return res.status(400).json({error: "Missing username or password"});
+      return res.status(400).json({ error: "Missing username or password" });
     }
 
-    // only need for plaintext passwords
-    const user = await User.findOne({username: String(username).trim() }).select("+password");
-    if (!user) return res.status(400).json({error: "Incorrect username or password"});
+    const user = await User.findOne({ username: String(username).trim() }).select("+password");
+    if (!user) {
+      return res.status(400).json({ error: "Incorrect username or password" });
+    }
 
-    let ok = false;
+    let isValid = false;
     if (user.passwordHash) {
-      ok = await bcrypt.compare(password, user.passwordHash);
+      isValid = await bcrypt.compare(password, user.passwordHash);
     } else if (user.password) {
-      // plaintext into password hash
-      ok = user.password === password;
-      if (ok) {
-        const rounds = parseInt(process.env.BCRYPT_ROUNDS || "12", 10);
-        user.passwordHash = await bcrypt.hash(password, rounds);
+      // Legacy: Migrate plaintext password to hash
+      isValid = user.password === password;
+      if (isValid) {
+        user.passwordHash = await bcrypt.hash(password, BCRYPT_ROUNDS);
         user.password = undefined;
         await user.save();
       }
     }
 
-    if (!ok) return res.status(400).json({error: "Incorrect username or password"});
+    if (!isValid) {
+      return res.status(400).json({ error: "Incorrect username or password" });
+    }
 
     return res.status(200).json({
       id: user._id,
@@ -132,18 +131,19 @@ app.post("/api/login", async (req, res) => {
       error: ""
     });
   } catch (err) {
-    console.error("Login error:", err);
-    return res.status(500).json({error: "Server error"});
+    console.error("❌ Login error:", err.message);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
+// Leaderboard
 app.post('/api/leaderboard', async (req, res) => {
   try {
     const { _id } = req.body || {};
 
     const users = await User.find({}, { username: 1, totalScore: 1 })
-                            .sort({ totalScore: -1 })
-                            .lean();
+      .sort({ totalScore: -1 })
+      .lean();
 
     const leaderboard = users.map((u, index) => ({
       username: u.username,
@@ -151,7 +151,7 @@ app.post('/api/leaderboard', async (req, res) => {
       rank: index + 1
     }));
 
-    const topHundred = leaderboard.slice(0,100);
+    const topHundred = leaderboard.slice(0, 100);
 
     let responseUser = null;
     if (_id) {
@@ -166,26 +166,33 @@ app.post('/api/leaderboard', async (req, res) => {
       }
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       topHundred,
       user: responseUser
     });
   } catch (err) {
-    console.error("Leaderboard error:", err);
-    res.status(500).json({ error: "Server error" });
+    console.error("❌ Leaderboard error:", err.message);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-// API Get User Profile (with rank)
+// Get User Profile
 app.get('/api/user/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    if (!id) return res.status(400).json({ error: 'Missing id' });
+    if (!id) {
+      return res.status(400).json({ error: 'Missing id' });
+    }
 
     const user = await User.findById(id).lean();
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    const users = await User.find({}, { _id: 1, totalScore: 1 }).sort({ totalScore: -1 }).lean();
+    const users = await User.find({}, { _id: 1, totalScore: 1 })
+      .sort({ totalScore: -1 })
+      .lean();
+    
     const userIndex = users.findIndex(u => u._id.toString() === id);
     const rank = userIndex === -1 ? null : userIndex + 1;
 
@@ -201,22 +208,17 @@ app.get('/api/user/:id', async (req, res) => {
       rank
     });
   } catch (err) {
-    console.error('User profile error:', err);
+    console.error('❌ User profile error:', err.message);
     return res.status(500).json({ error: 'Server error' });
   }
 });
 
-// API Get Today's APOD
+// Get Today's APOD
 app.get('/api/apod/today', async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    console.log("🌌 Endpoint called: Fetching fresh APOD...");
+    const apod = await fetchAndStoreApod();
     
-    const apod = await Apod.findOne({ date: today }).lean();
-    
-    if (!apod) {
-      return res.status(404).json({ error: 'APOD not found for today. It will be fetched by the cron job shortly.' });
-    }
-
     return res.status(200).json({
       date: apod.date,
       title: apod.title,
@@ -225,7 +227,12 @@ app.get('/api/apod/today', async (req, res) => {
       media_type: apod.media_type
     });
   } catch (err) {
-    console.error("❌ APOD route error:", err);
+    console.error("❌ APOD route error:", err.message);
+    if (err.response) {
+      return res.status(err.response.status || 500).json({
+        error: 'Failed to fetch APOD from NASA API'
+      });
+    }
     return res.status(500).json({ error: 'Server error' });
   }
 });
@@ -235,7 +242,7 @@ app.get("/", (_req, res) => {
   res.send("Backend is running successfully 🚀");
 });
 
-// Start
+// Start Server
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });

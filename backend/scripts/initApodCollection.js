@@ -52,4 +52,3 @@ async function initCollection() {
 }
 
 initCollection();
-

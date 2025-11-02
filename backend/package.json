@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "init-apod": "node scripts/initApodCollection.js",
     "verify-apod": "node scripts/verifyApodCollection.js",
-    "test-apod": "node scripts/testApodEndpoint.js"
+    "test-apod": "node scripts/testApodEndpoint.js",
+    "check-apod": "node scripts/checkMongoData.js"
   },
   "keywords": [],
   "author": "",
@@ -21,8 +22,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "mongoose": "^8.19.2",
-    "node-cron": "^4.2.1",
-    "pg": "^8.16.3"
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
