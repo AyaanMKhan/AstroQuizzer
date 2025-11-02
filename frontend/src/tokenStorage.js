@@ -1,24 +1,11 @@
-export function storeToken( tok:any ) : any
-{
- try
- {
- localStorage.setItem('token_data', tok.accessToken);
- }
- catch(e)
- {
- console.log(e);
- }
+export function storeToken(token) {
+  try { localStorage.setItem('jwtToken', token || ''); } catch {}
 }
-export function retrieveToken() : any
-{
- var ud;
- try
- {
- ud = localStorage.getItem('token_data');
- }
- catch(e)
- {
- console.log(e);
- }
- return ud;
+
+export function retrieveToken() {
+  try { return localStorage.getItem('jwtToken') || ''; } catch { return ''; }
+}
+
+export function clearToken() {
+  try { localStorage.removeItem('jwtToken'); } catch {}
 }
