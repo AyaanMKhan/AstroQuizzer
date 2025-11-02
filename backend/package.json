@@ -9,13 +9,16 @@
     "init-apod": "node scripts/initApodCollection.js",
     "verify-apod": "node scripts/verifyApodCollection.js",
     "test-apod": "node scripts/testApodEndpoint.js",
-    "check-apod": "node scripts/checkMongoData.js"
+    "check-apod": "node scripts/checkMongoData.js",
+    "list-models": "node scripts/listGeminiModels.js",
+    "test-search": "node scripts/testGoogleSearch.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.1",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
