@@ -3,6 +3,8 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import Apod from "./models/Apod.js";
+import { initApodCron } from "./cron/apodCron.js";
 
 dotenv.config();
 
@@ -52,6 +54,9 @@ const userSchema = new mongoose.Schema({
 }, {timestamps: true});
 
 const User = mongoose.model("User", userSchema);
+
+// Initialize NASA APOD cron job
+initApodCron();
 
 // API Register
 app.post("/api/register", async (req, res) => {
@@ -201,6 +206,29 @@ app.get('/api/user/:id', async (req, res) => {
   }
 });
 
+// API Get Today's APOD
+app.get('/api/apod/today', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    
+    const apod = await Apod.findOne({ date: today }).lean();
+    
+    if (!apod) {
+      return res.status(404).json({ error: 'APOD not found for today. It will be fetched by the cron job shortly.' });
+    }
+
+    return res.status(200).json({
+      date: apod.date,
+      title: apod.title,
+      url: apod.url,
+      explanation: apod.explanation,
+      media_type: apod.media_type
+    });
+  } catch (err) {
+    console.error("❌ APOD route error:", err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
 
 // Root
 app.get("/", (_req, res) => {
