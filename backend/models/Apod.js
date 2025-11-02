@@ -23,6 +23,10 @@ const apodSchema = new mongoose.Schema({
     type: String,
     required: true,
     enum: ["image", "video"]
+  },
+  additionalResources: {
+    type: [String],
+    default: []
   }
 }, {
   timestamps: true

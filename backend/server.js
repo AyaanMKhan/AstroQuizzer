@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 import User from "./models/User.js";
+import Apod from "./models/Apod.js";
 import { fetchAndStoreApod } from "./utils/apodFetcher.js";
 import { initApodCron } from "./cron/apodCron.js";
 
@@ -219,12 +220,26 @@ app.get('/api/apod/today', async (req, res) => {
     console.log("🌌 Endpoint called: Fetching fresh APOD...");
     const apod = await fetchAndStoreApod();
     
+    // If resources aren't populated yet, generate them
+    if (!apod.additionalResources || apod.additionalResources.length === 0) {
+      const { generateAdditionalResources, updateApodWithResources } = await import("./utils/generateResources.js");
+      console.log("🔍 Resources not found, generating now...");
+      const resources = await generateAdditionalResources(apod.date, apod.title, apod.explanation);
+      if (resources.length > 0) {
+        await updateApodWithResources(apod.date, resources);
+        // Fetch updated APOD
+        const updatedApod = await Apod.findOne({ date: apod.date }).lean();
+        apod.additionalResources = updatedApod?.additionalResources || [];
+      }
+    }
+    
     return res.status(200).json({
       date: apod.date,
       title: apod.title,
       url: apod.url,
       explanation: apod.explanation,
-      media_type: apod.media_type
+      media_type: apod.media_type,
+      additionalResources: apod.additionalResources || []
     });
   } catch (err) {
     console.error("❌ APOD route error:", err.message);
