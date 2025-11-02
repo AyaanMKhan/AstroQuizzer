@@ -75,7 +75,7 @@ app.post("/api/register", async (req, res) => {
 
     const verificationToken = jwt.sign(
       { email },
-      process.env.JWT_SECRET,
+      process.env.ACCESS_TOKEN_SECRET,
       { expiresIn: "1d" }
     );
 
