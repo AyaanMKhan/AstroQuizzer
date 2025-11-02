@@ -68,4 +68,3 @@ async function verifyCollection() {
 }
 
 verifyCollection();
-
