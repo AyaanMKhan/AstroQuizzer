@@ -90,7 +90,9 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> doLogin() async {
     if (_userCtrl.text.trim().isEmpty || _passCtrl.text.isEmpty) {
       final msg = 'Please enter username and password';
-      setState(() { error = msg; });
+      setState(() {
+        error = msg;
+      });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       return;
     }
@@ -105,30 +107,41 @@ class _LoginPageState extends State<LoginPage> {
       final res = await http
           .post(Uri.parse('http://10.0.2.2:5001/api/login'),
               headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({'username': _userCtrl.text, 'password': _passCtrl.text}))
+              body: jsonEncode(
+                  {'username': _userCtrl.text, 'password': _passCtrl.text}))
           .timeout(const Duration(seconds: 10));
 
       print('doLogin: status=${res.statusCode}, body=${res.body}');
       final j = jsonDecode(res.body);
       if (res.statusCode == 200 && j['id'] != null) {
         widget.onLogin(j['id']);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signed in')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Signed in')));
       } else {
         final msg = j['error'] ?? 'Login failed';
-        setState(() { error = msg; });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        setState(() {
+          error = msg;
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
       print('doLogin exception: $e');
-      setState(() { error = 'Network error'; });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Network error')));
+      setState(() {
+        error = 'Network error';
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Network error')));
     } finally {
-      setState(() { loading = false; });
+      setState(() {
+        loading = false;
+      });
     }
   }
 
   void openSignup() {
-    Navigator.of(context).push(MaterialPageRoute(builder: (_) => SignupPage(onSignup: widget.onSignup)));
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => SignupPage(onSignup: widget.onSignup)));
   }
 
   @override
@@ -142,11 +155,18 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text('AstroQuizzer', style: TextStyle(fontSize: 28, color: textPrimary, fontWeight: FontWeight.bold)),
+              const Text('AstroQuizzer',
+                  style: TextStyle(
+                      fontSize: 28,
+                      color: textPrimary,
+                      fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               TextField(
                 controller: _userCtrl,
-                decoration: const InputDecoration(hintText: 'Username', filled: true, fillColor: Color(0xFF020617)),
+                decoration: const InputDecoration(
+                    hintText: 'Username',
+                    filled: true,
+                    fillColor: Color(0xFF020617)),
                 style: const TextStyle(color: textPrimary),
                 textInputAction: TextInputAction.next,
               ),
@@ -154,7 +174,10 @@ class _LoginPageState extends State<LoginPage> {
               TextField(
                 controller: _passCtrl,
                 obscureText: true,
-                decoration: const InputDecoration(hintText: 'Password', filled: true, fillColor: Color(0xFF020617)),
+                decoration: const InputDecoration(
+                    hintText: 'Password',
+                    filled: true,
+                    fillColor: Color(0xFF020617)),
                 style: const TextStyle(color: textPrimary),
                 onSubmitted: (_) => doLogin(),
               ),
@@ -167,14 +190,23 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: loading ? null : doLogin,
-                  style: ElevatedButton.styleFrom(backgroundColor: primaryButton, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryButton,
+                      padding: const EdgeInsets.symmetric(vertical: 14)),
                   child: loading
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
                       : const Text('Sign in'),
                 ),
               ),
               const SizedBox(height: 8),
-              TextButton(onPressed: openSignup, child: const Text('Create account', style: TextStyle(color: textMuted))),
+              TextButton(
+                  onPressed: openSignup,
+                  child: const Text('Create account',
+                      style: TextStyle(color: textMuted))),
             ],
           ),
         ),
@@ -201,14 +233,23 @@ class _SignupPageState extends State<SignupPage> {
   bool loading = false;
 
   Future<void> doSignup() async {
-    if (_user.text.trim().isEmpty || _pass.text.isEmpty || _first.text.trim().isEmpty || _last.text.trim().isEmpty || _email.text.trim().isEmpty) {
+    if (_user.text.trim().isEmpty ||
+        _pass.text.isEmpty ||
+        _first.text.trim().isEmpty ||
+        _last.text.trim().isEmpty ||
+        _email.text.trim().isEmpty) {
       final msg = 'Please fill all fields';
-      setState(() { error = msg; });
+      setState(() {
+        error = msg;
+      });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       return;
     }
 
-    setState(() { loading = true; error = ''; });
+    setState(() {
+      loading = true;
+      error = '';
+    });
     print('doSignup: attempting ${_user.text}');
     try {
       final res = await http
@@ -226,19 +267,28 @@ class _SignupPageState extends State<SignupPage> {
       final j = jsonDecode(res.body);
       if (res.statusCode == 200 && j['id'] != null) {
         widget.onSignup(j['id']);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account created')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Account created')));
         Navigator.of(context).pop();
       } else {
         final msg = j['error'] ?? 'Signup failed';
-        setState(() { error = msg; });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+        setState(() {
+          error = msg;
+        });
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(msg)));
       }
     } catch (e) {
       print('doSignup exception: $e');
-      setState(() { error = 'Network error'; });
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Network error')));
+      setState(() {
+        error = 'Network error';
+      });
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Network error')));
     } finally {
-      setState(() { loading = false; });
+      setState(() {
+        loading = false;
+      });
     }
   }
 
@@ -251,15 +301,41 @@ class _SignupPageState extends State<SignupPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(controller: _first, decoration: const InputDecoration(hintText: 'First name', filled: true, fillColor: Color(0xFF020617))),
+            TextField(
+                controller: _first,
+                decoration: const InputDecoration(
+                    hintText: 'First name',
+                    filled: true,
+                    fillColor: Color(0xFF020617))),
             const SizedBox(height: 8),
-            TextField(controller: _last, decoration: const InputDecoration(hintText: 'Last name', filled: true, fillColor: Color(0xFF020617))),
+            TextField(
+                controller: _last,
+                decoration: const InputDecoration(
+                    hintText: 'Last name',
+                    filled: true,
+                    fillColor: Color(0xFF020617))),
             const SizedBox(height: 8),
-            TextField(controller: _email, decoration: const InputDecoration(hintText: 'Email', filled: true, fillColor: Color(0xFF020617))),
+            TextField(
+                controller: _email,
+                decoration: const InputDecoration(
+                    hintText: 'Email',
+                    filled: true,
+                    fillColor: Color(0xFF020617))),
             const SizedBox(height: 8),
-            TextField(controller: _user, decoration: const InputDecoration(hintText: 'Username', filled: true, fillColor: Color(0xFF020617))),
+            TextField(
+                controller: _user,
+                decoration: const InputDecoration(
+                    hintText: 'Username',
+                    filled: true,
+                    fillColor: Color(0xFF020617))),
             const SizedBox(height: 8),
-            TextField(controller: _pass, obscureText: true, decoration: const InputDecoration(hintText: 'Password', filled: true, fillColor: Color(0xFF020617))),
+            TextField(
+                controller: _pass,
+                obscureText: true,
+                decoration: const InputDecoration(
+                    hintText: 'Password',
+                    filled: true,
+                    fillColor: Color(0xFF020617))),
             if (error.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(error, style: const TextStyle(color: Color(0xFFE33))),
@@ -269,8 +345,16 @@ class _SignupPageState extends State<SignupPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                     onPressed: loading ? null : doSignup,
-                    style: ElevatedButton.styleFrom(backgroundColor: primaryButton, padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Create account'))),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryButton,
+                        padding: const EdgeInsets.symmetric(vertical: 14)),
+                    child: loading
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white))
+                        : const Text('Create account'))),
           ],
         ),
       ),
@@ -292,7 +376,11 @@ class _MainTabViewState extends State<MainTabView> {
 
   @override
   Widget build(BuildContext context) {
-    final pages = [LeaderboardPage(userId: widget.userId), QuizPage(), ProfilePage(userId: widget.userId, onLogout: widget.onLogout)];
+    final pages = [
+      LeaderboardPage(userId: widget.userId),
+      QuizPage(),
+      ProfilePage(userId: widget.userId, onLogout: widget.onLogout)
+    ];
     return Scaffold(
       appBar: AppBar(title: const Text('AstroQuizzer')),
       body: pages[_index],
@@ -300,7 +388,8 @@ class _MainTabViewState extends State<MainTabView> {
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: 'Leaderboard'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.emoji_events), label: 'Leaderboard'),
           BottomNavigationBarItem(icon: Icon(Icons.quiz), label: 'Quiz'),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
@@ -337,7 +426,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       error = null;
     });
     try {
-      final res = await http.post(Uri.parse('http://10.0.2.2:5001/api/leaderboard'),
+      final res = await http.post(
+          Uri.parse('http://10.0.2.2:5001/api/leaderboard'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'_id': widget.userId}));
       final j = jsonDecode(res.body);
@@ -364,13 +454,19 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   @override
   Widget build(BuildContext context) {
     if (loading) return const Center(child: CircularProgressIndicator());
-    if (error != null) return Center(child: Text(error!, style: const TextStyle(color: Color(0xFFE33))));
+    if (error != null)
+      return Center(
+          child: Text(error!, style: const TextStyle(color: Color(0xFFE33))));
     return Container(
       padding: const EdgeInsets.all(16),
       color: bgPrimary,
       child: Column(
         children: [
-          const Text('Leaderboard', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textPrimary)),
+          const Text('Leaderboard',
+              style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary)),
           const SizedBox(height: 12),
           Expanded(
             child: ListView.builder(
@@ -381,9 +477,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   color: const Color(0xFF020617),
                   margin: const EdgeInsets.symmetric(vertical: 6),
                   child: ListTile(
-                    leading: CircleAvatar(backgroundColor: primaryButton, child: Text((i+1).toString())),
-                    title: Text(item['username'] ?? '', style: const TextStyle(color: textPrimary)),
-                    trailing: Text('${item['totalScore'] ?? 0}', style: const TextStyle(color: textMuted)),
+                    leading: CircleAvatar(
+                        backgroundColor: primaryButton,
+                        child: Text((i + 1).toString())),
+                    title: Text(item['username'] ?? '',
+                        style: const TextStyle(color: textPrimary)),
+                    trailing: Text('${item['totalScore'] ?? 0}',
+                        style: const TextStyle(color: textMuted)),
                   ),
                 );
               },
@@ -401,13 +501,11 @@ class QuizPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-        child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: const [
-          Text('Quiz area', style: TextStyle(color: textPrimary, fontSize: 20)),
-          SizedBox(height: 8),
-          Text('Start a quiz here', style: TextStyle(color: textMuted))
-        ]));
+        child: Column(mainAxisSize: MainAxisSize.min, children: const [
+      Text('Quiz area', style: TextStyle(color: textPrimary, fontSize: 20)),
+      SizedBox(height: 8),
+      Text('Start a quiz here', style: TextStyle(color: textMuted))
+    ]));
   }
 }
 
@@ -437,7 +535,8 @@ class _ProfilePageState extends State<ProfilePage> {
       error = null;
     });
     try {
-      final res = await http.get(Uri.parse('http://10.0.2.2:5001/api/user/${widget.userId}'));
+      final res = await http
+          .get(Uri.parse('http://10.0.2.2:5001/api/user/${widget.userId}'));
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
         setState(() {
@@ -462,8 +561,12 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     if (loading) return const Center(child: CircularProgressIndicator());
-    if (error != null) return Center(child: Text(error!, style: const TextStyle(color: Color(0xFFE33))));
-    if (profile == null) return const Center(child: Text('No profile', style: TextStyle(color: textMuted)));
+    if (error != null)
+      return Center(
+          child: Text(error!, style: const TextStyle(color: Color(0xFFE33))));
+    if (profile == null)
+      return const Center(
+          child: Text('No profile', style: TextStyle(color: textMuted)));
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -479,7 +582,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 children: [
                   Text(
                     profile!['username'] ?? '',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPrimary),
+                    style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: textPrimary),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -490,7 +596,8 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               ElevatedButton(
                 onPressed: widget.onLogout,
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1e293b)),
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1e293b)),
                 child: const Text('Log out'),
               ),
             ],
@@ -506,15 +613,18 @@ class _ProfilePageState extends State<ProfilePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Score', style: TextStyle(color: textPrimary)),
-                      Text('${profile!['totalScore'] ?? 0}', style: const TextStyle(color: textMuted)),
+                      Text('${profile!['totalScore'] ?? 0}',
+                          style: const TextStyle(color: textMuted)),
                     ],
                   ),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Quizzes taken', style: TextStyle(color: textPrimary)),
-                      Text('${profile!['quizzesTaken'] ?? 0}', style: const TextStyle(color: textMuted)),
+                      const Text('Quizzes taken',
+                          style: TextStyle(color: textPrimary)),
+                      Text('${profile!['quizzesTaken'] ?? 0}',
+                          style: const TextStyle(color: textMuted)),
                     ],
                   ),
                   const SizedBox(height: 8),
@@ -522,7 +632,8 @@ class _ProfilePageState extends State<ProfilePage> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Rank', style: TextStyle(color: textPrimary)),
-                      Text('${profile!['rank'] ?? '-'}', style: const TextStyle(color: textMuted)),
+                      Text('${profile!['rank'] ?? '-'}',
+                          style: const TextStyle(color: textMuted)),
                     ],
                   ),
                 ],
