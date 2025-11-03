@@ -92,7 +92,7 @@ app.post("/api/register", async (req, res) => {
     });
 
     const mailOptions = {
-      from: `"Your App" <${process.env.EMAIL_USER}>`,
+      from: `"Astroquizzer" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: "Verify your email address",
       html: `
@@ -238,7 +238,7 @@ app.post("/api/reset-password", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "Invalid token" });
 
-    user.password = newPassword; // hash this if you’re hashing passwords!
+    user.password = newPassword;
     await user.save();
 
     res.status(200).json({ message: "Password reset successful!" });
