@@ -11,7 +11,9 @@
     "test-apod": "node scripts/testApodEndpoint.js",
     "check-apod": "node scripts/checkMongoData.js",
     "list-models": "node scripts/listGeminiModels.js",
-    "test-search": "node scripts/testGoogleSearch.js"
+    "test-search": "node scripts/testGoogleSearch.js",
+    "reset-daily-quiz": "node scripts/resetDailyQuiz.js",
+    "remove-user-fields": "node scripts/removeFieldsFromUsers.js"
   },
   "keywords": [],
   "author": "",

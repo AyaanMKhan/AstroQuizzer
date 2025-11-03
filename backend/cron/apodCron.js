@@ -1,6 +1,8 @@
 import cron from "node-cron";
 import { fetchAndStoreApod } from "../utils/apodFetcher.js";
 import { generateAdditionalResources, updateApodWithResources } from "../utils/generateResources.js";
+import { generateQuestions, storeQuestions } from "../utils/generateQuestions.js";
+import Question from "../models/Question.js";
 
 // Initialize APOD cron job
 export function initApodCron() {
@@ -14,7 +16,7 @@ export function initApodCron() {
     try {
       const apod = await fetchAndStoreApod();
       
-      // Generate additional resources after APOD is stored
+      // Generate additional resources and questions after APOD is stored
       if (apod) {
         console.log("🔍 Generating additional resources...");
         const resources = await generateAdditionalResources(
@@ -25,6 +27,27 @@ export function initApodCron() {
         
         if (resources.length > 0) {
           await updateApodWithResources(apod.date, resources);
+        }
+
+        // Generate questions for today's APOD if they don't exist
+        // storeQuestions will delete old records automatically
+        try {
+          const existingQuestions = await Question.findOne({ date: apod.date });
+          if (!existingQuestions || !existingQuestions.questions || existingQuestions.questions.length === 0) {
+            console.log("📝 Generating questions...");
+            const questions = await generateQuestions(
+              apod.date,
+              apod.title,
+              apod.explanation
+            );
+            await storeQuestions(apod.date, questions);
+          } else {
+            // Even if questions exist, ensure old records are deleted
+            console.log(`ℹ️ Questions already exist for ${apod.date}, ensuring cleanup...`);
+            await storeQuestions(apod.date, existingQuestions.questions);
+          }
+        } catch (questionErr) {
+          console.error("❌ Error generating questions in APOD cron:", questionErr.message);
         }
       }
     } catch (err) {

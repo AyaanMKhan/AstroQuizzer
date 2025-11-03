@@ -26,6 +26,20 @@ export default function CreateAccountPage({ onSignInClick }: CreateAccountPagePr
       setError('Please fill in all fields');
       return;
     }
+    
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return;
+    }
+    
+    // Password length validation
+    if (password.length <= 8) {
+      setError('Password must be greater than 8 characters');
+      return;
+    }
+    
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -65,10 +79,8 @@ export default function CreateAccountPage({ onSignInClick }: CreateAccountPagePr
         
         <div className="content">
           <form className="form fade-in" onSubmit={handleSubmit}>
-            <div className="row">
-              <input type="text" placeholder="First Name" className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
-              <input type="text" placeholder="Last Name" className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} />
-            </div>
+            <input type="text" placeholder="First Name" className="input" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+            <input type="text" placeholder="Last Name" className="input" value={lastName} onChange={(e) => setLastName(e.target.value)} />
             <input type="text" placeholder="Username" className="input" value={username} onChange={(e) => setUsername(e.target.value)} />
             <input type="email" placeholder="Email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
             <input type="password" placeholder="Password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} />

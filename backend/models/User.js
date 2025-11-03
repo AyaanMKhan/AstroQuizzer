@@ -40,13 +40,16 @@ const userSchema = new mongoose.Schema({
     default: 0,
     min: 0
   },
-  favoriteSign: {
-    type: String,
-    default: "Pisces",
-    enum: [
-      "Aries", "Taurus", "Gemini", "Cancer", "Leo", "Virgo",
-      "Libra", "Scorpio", "Sagittarius", "Capricorn", "Aquarius", "Pisces"
-    ]
+  currentDaysPoints: {
+    type: Number,
+    default: 0,
+    min: 0
+    // Reset to 0 daily at 01:00 UTC when new APOD/questions are available
+  },
+  dailyQuizCompleted: {
+    type: Boolean,
+    default: false
+    // Reset to false daily at 01:00 UTC when new APOD/questions are available
   },
   // Legacy field for old plaintext passwords
   password: {

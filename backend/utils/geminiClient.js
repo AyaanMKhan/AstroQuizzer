@@ -14,10 +14,10 @@ const genAI = GEMINI_API_KEY ? new GoogleGenerativeAI(GEMINI_API_KEY) : null;
 
 /**
  * Get a Gemini model instance
- * @param {string} modelName - Model name (default: 'gemini-pro')
+ * @param {string} modelName - Model name (default: 'gemini-2.5-flash')
  * @returns {Object|null} Model instance or null if API key is missing
  */
-export function getGeminiModel(modelName = "gemini-pro") {
+export function getGeminiModel(modelName = "gemini-2.5-flash") {
   if (!genAI) {
     throw new Error("Gemini API key not configured. Set GEMINI_API_KEY in .env");
   }
@@ -27,19 +27,19 @@ export function getGeminiModel(modelName = "gemini-pro") {
 /**
  * Make a simple text completion request
  * @param {string} prompt - The prompt to send to the model
- * @param {string} modelName - Model name (default: 'gemini-pro')
+ * @param {string} modelName - Model name (default: 'gemini-2.5-flash')
  * @param {boolean} useWebSearch - Enable Google Search grounding (default: true for resource generation)
  * @returns {Promise<string>} The generated text response
  */
-export async function generateText(prompt, modelName = "gemini-pro", useWebSearch = false) {
+export async function generateText(prompt, modelName = "gemini-2.5-flash", useWebSearch = false) {
   try {
     if (!genAI) {
       throw new Error("Gemini API key not configured");
     }
 
-    // Use gemini-pro (gemini-1.5 models may not be available in all API versions)
-    // For search grounding, we'll use gemini-pro and enable the search tool
-    const modelToUse = modelName; // Use provided model or default to gemini-pro
+    // Use gemini-2.5-flash as default (fast and efficient)
+    // For search grounding, we'll use the model and enable the search tool
+    const modelToUse = modelName; // Use provided model or default to gemini-2.5-flash
     const model = getGeminiModel(modelToUse);
     
     // Configure with Google Search grounding if requested
@@ -72,10 +72,10 @@ export async function generateText(prompt, modelName = "gemini-pro", useWebSearc
 /**
  * Make a chat completion request (with conversation history)
  * @param {Array} messages - Array of message objects with 'role' and 'content'
- * @param {string} modelName - Model name (default: 'gemini-pro')
+ * @param {string} modelName - Model name (default: 'gemini-2.5-flash')
  * @returns {Promise<string>} The generated text response
  */
-export async function generateChat(messages, modelName = "gemini-pro") {
+export async function generateChat(messages, modelName = "gemini-2.5-flash") {
   try {
     if (!genAI) {
       throw new Error("Gemini API key not configured");
