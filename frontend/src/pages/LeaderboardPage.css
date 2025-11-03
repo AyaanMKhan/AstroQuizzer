@@ -32,79 +32,40 @@
 }
 
 .btn {
-  padding: 0.625rem 1.5rem;
+  padding: 0.6rem 1.1rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 16px;
   cursor: pointer;
-  font-weight: 600;
-  font-size: 0.875rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   transition: all 0.2s ease;
   white-space: nowrap;
-}
-
-.apod {
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid transparent;
-}
-
-.apod:hover {
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.leaderboard {
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid transparent;
-}
-
-.leaderboard:hover,
-.leaderboard.active {
-  background: rgba(59, 130, 246, 0.15);
-  color: #3b82f6;
-  border-color: rgba(59, 130, 246, 0.4);
-}
-
-.profile {
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid transparent;
-  min-width: 120px;
-}
-
-.profile:hover,
-.profile.active {
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.sign-in {
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid transparent;
-}
-
-.sign-in:hover {
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.sign-up {
   background: #2563eb;
-  color: white;
-  border: 1px solid #2563eb;
+  color: #ffffff;
 }
 
-.sign-up:hover {
-  background: #3b82f6;
-  border-color: #3b82f6;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+.apod,
+.leaderboard,
+.profile {
+  background: #2563eb;
+  color: #ffffff;
+  min-width: 120px;
+  width: 180px; /* keep pills consistent width */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.apod.active,
+.leaderboard.active,
+.profile.active { background: #1e293b; color: #3b82f6; }
+/* Keep active state unchanged on hover */
+.apod.active:hover,
+.leaderboard.active:hover,
+.profile.active:hover { background: #1e293b; color: #3b82f6; }
+
+.sign-in { background: #2563eb; color: #ffffff; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-up { background: #2563eb; color: white; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-up:hover { background: #3b82f6; }
 
 .content {
   max-width: 800px;
