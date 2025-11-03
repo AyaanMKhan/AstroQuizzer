@@ -32,67 +32,36 @@
 }
 
 .btn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.6rem 1.1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 16px;
   cursor: pointer;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.3s;
-}
-
-.apod {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.apod:hover,
-.apod.active {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.leaderboard {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.leaderboard:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.profile {
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid transparent;
-  min-width: 120px;
-}
-
-.profile:hover {
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.sign-in {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.sign-in:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.sign-up {
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  color: #ffffff;
   background: #2563eb;
-  color: white;
 }
 
-.sign-up:hover {
-  background: #3b82f6;
-}
+.apod { background: #2563eb; color: #ffffff; min-width: 120px; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.apod:hover { background: #3b82f6; }
+.apod.active { background: #1e293b; color: #3b82f6; }
+/* Keep active state unchanged on hover */
+.apod.active:hover { background: #1e293b; color: #3b82f6; }
+
+.leaderboard { background: #2563eb; color: #ffffff; min-width: 120px; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.leaderboard:hover { background: #3b82f6; }
+.leaderboard.active:hover { background: #1e293b; color: #3b82f6; }
+
+.profile { background: #2563eb; color: #ffffff; min-width: 120px; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.profile:hover { background: #3b82f6; }
+.profile.active:hover { background: #1e293b; color: #3b82f6; }
+
+.sign-in { background: #2563eb; color: #ffffff; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-in:hover { background: #3b82f6; }
+
+.sign-up { background: #2563eb; color: white; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-up:hover { background: #3b82f6; }
 
 .apod-content {
   max-width: 1200px;
@@ -174,11 +143,11 @@
 }
 
 .apod-title {
-  font-size: 3rem;
-  font-weight: 700;
+  font-size: 3.75rem;
+  font-weight: 800;
   color: #ffffff;
-  margin-bottom: 1rem;
-  line-height: 1.2;
+  margin-bottom: 1.25rem;
+  line-height: 1.1;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
@@ -268,8 +237,8 @@
 }
 
 .section-title {
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   color: #ffffff;
   margin-bottom: 1.5rem;
 }
@@ -338,18 +307,14 @@
     padding: 2rem 1.5rem;
   }
 
-  .apod-title {
-    font-size: 2rem;
-  }
+  .apod-title { font-size: 2.5rem; }
 
   .explanation-card,
   .resources-card {
     padding: 1.5rem;
   }
 
-  .section-title {
-    font-size: 1.5rem;
-  }
+  .section-title { font-size: 1.75rem; }
 
   .explanation-text {
     font-size: 1rem;

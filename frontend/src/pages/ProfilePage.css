@@ -32,67 +32,38 @@
 }
 
 .btn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.6rem 1.1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 16px;
   cursor: pointer;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.3s;
-}
-
-.apod {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.apod:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.leaderboard {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.leaderboard:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.profile {
-  background: transparent;
-  color: #94a3b8;
-  border: 1px solid transparent;
-  min-width: 120px;
-}
-
-.profile:hover,
-.profile.active {
-  background: rgba(30, 41, 59, 0.6);
-  color: #e2e8f0;
-  border-color: rgba(59, 130, 246, 0.3);
-}
-
-.sign-in {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.sign-in:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.sign-up {
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
   background: #2563eb;
-  color: white;
+  color: #ffffff;
 }
 
-.sign-up:hover {
-  background: #3b82f6;
+.apod,
+.leaderboard,
+.profile {
+  background: #2563eb;
+  color: #ffffff;
+  width: 180px; /* keep pills consistent width */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.apod.active,
+.leaderboard.active,
+.profile.active { background: #1e293b; color: #3b82f6; }
+/* Keep active state unchanged on hover */
+.apod.active:hover,
+.leaderboard.active:hover,
+.profile.active:hover { background: #1e293b; color: #3b82f6; }
+
+.sign-in { background: #2563eb; color: #ffffff; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-up { background: #2563eb; color: white; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-up:hover { background: #3b82f6; }
 
 .content {
   max-width: 800px;
