@@ -41,18 +41,18 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
       <div className="content">
         <h1>Welcome to AstroQuizzer</h1>
         <p>Explore the cosmos with daily astronomy pictures and compete with fellow enthusiasts!</p>
-        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-          <div className="feature-card">
+        <div className="feature-grid">
+          <div className="feature-card top">
             <h3>Today's Picture</h3>
             <p>Discover NASA's Astronomy Picture of the Day with detailed explanations and resources</p>
             {onApodClick && <button className="feature-btn" onClick={onApodClick}>View Picture</button>}
           </div>
-          <div className="feature-card">
+          <div className="feature-card left">
             <h3>Leaderboard</h3>
             <p>See where you rank among fellow astronomy enthusiasts</p>
             <button className="feature-btn" onClick={onLeaderboardClick}>View Leaderboard</button>
           </div>
-          <div className="feature-card">
+          <div className="feature-card right">
             <h3>Profile</h3>
             <p>Track your progress and view your achievements</p>
             <button className="feature-btn" onClick={onProfileClick}>View Profile</button>

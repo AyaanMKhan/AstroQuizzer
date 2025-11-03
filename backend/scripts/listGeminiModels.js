@@ -31,9 +31,13 @@ async function listModels() {
         "gemini-pro",
         "gemini-1.5-pro",
         "gemini-1.5-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-pro-latest",
         "gemini-1.0-pro",
+        "gemini-1.0-pro-latest",
         "models/gemini-pro",
-        "models/gemini-1.5-pro"
+        "models/gemini-1.5-pro",
+        "models/gemini-1.5-flash"
       ];
       
       for (const modelName of modelNames) {

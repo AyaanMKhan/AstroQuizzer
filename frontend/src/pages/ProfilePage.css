@@ -64,12 +64,15 @@
 .profile {
   background: transparent;
   color: #94a3b8;
+  border: 1px solid transparent;
+  min-width: 120px;
 }
 
 .profile:hover,
 .profile.active {
-  background: #1e293b;
+  background: rgba(30, 41, 59, 0.6);
   color: #e2e8f0;
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .sign-in {

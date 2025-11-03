@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'dart:convert';
 
 void main() {
@@ -13,12 +14,21 @@ const Color textPrimary = Color(0xFFE2E8F0); // #e2e8f0
 const Color textMuted = Color(0xFF94A3B8); // #94a3b8
 const Color primaryButton = Color(0xFF2563EB); // #2563eb
 
+// API Base URL
+// Use '127.0.0.1' for macOS/iOS (more reliable than localhost)
+// Use '10.0.2.2' for Android emulator
+const String apiBaseUrl = 'http://127.0.0.1:5001';
+
+final GlobalKey<AuthGateState> authGateKey = GlobalKey<AuthGateState>();
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'AstroQuizzer Mobile',
       theme: ThemeData(
         colorScheme: ColorScheme.dark(
@@ -32,7 +42,7 @@ class MyApp extends StatelessWidget {
           bodyMedium: TextStyle(color: textMuted),
         ),
       ),
-      home: const AuthGate(),
+      home: AuthGate(key: authGateKey),
       debugShowCheckedModeBanner: false,
     );
   }
@@ -42,10 +52,10 @@ class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
 
   @override
-  State<AuthGate> createState() => _AuthGateState();
+  AuthGateState createState() => AuthGateState();
 }
 
-class _AuthGateState extends State<AuthGate> {
+class AuthGateState extends State<AuthGate> {
   bool loggedIn = false;
   String? userId;
 
@@ -66,9 +76,9 @@ class _AuthGateState extends State<AuthGate> {
   @override
   Widget build(BuildContext context) {
     if (!loggedIn) {
-      return LoginPage(onLogin: onLogin, onSignup: onLogin);
+      return LoginPage(key: ValueKey('login'), onLogin: onLogin, onSignup: onLogin);
     }
-    return MainTabView(userId: userId!, onLogout: onLogout);
+    return MainTabView(key: ValueKey('main_$userId'), userId: userId!, onLogout: onLogout);
   }
 }
 
@@ -89,7 +99,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> doLogin() async {
     if (_userCtrl.text.trim().isEmpty || _passCtrl.text.isEmpty) {
-      final msg = 'Please enter username and password';
+      final msg = 'Please enter email and password';
       setState(() { error = msg; });
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
       return;
@@ -103,9 +113,9 @@ class _LoginPageState extends State<LoginPage> {
     print('doLogin: attempting login for ${_userCtrl.text}');
     try {
       final res = await http
-          .post(Uri.parse('http://10.0.2.2:5001/api/login'),
+          .post(Uri.parse('$apiBaseUrl/api/login'),
               headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({'username': _userCtrl.text, 'password': _passCtrl.text}))
+              body: jsonEncode({'email': _userCtrl.text, 'password': _passCtrl.text}))
           .timeout(const Duration(seconds: 10));
 
       print('doLogin: status=${res.statusCode}, body=${res.body}');
@@ -146,7 +156,7 @@ class _LoginPageState extends State<LoginPage> {
               const SizedBox(height: 12),
               TextField(
                 controller: _userCtrl,
-                decoration: const InputDecoration(hintText: 'Username', filled: true, fillColor: Color(0xFF020617)),
+                decoration: const InputDecoration(hintText: 'Email', filled: true, fillColor: Color(0xFF020617)),
                 style: const TextStyle(color: textPrimary),
                 textInputAction: TextInputAction.next,
               ),
@@ -167,10 +177,14 @@ class _LoginPageState extends State<LoginPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: loading ? null : doLogin,
-                  style: ElevatedButton.styleFrom(backgroundColor: primaryButton, padding: const EdgeInsets.symmetric(vertical: 14)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryButton,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
                   child: loading
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Text('Sign in'),
+                      : const Text('Sign in', style: TextStyle(color: Colors.white)),
                 ),
               ),
               const SizedBox(height: 8),
@@ -208,11 +222,28 @@ class _SignupPageState extends State<SignupPage> {
       return;
     }
 
+    // Email validation
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    if (!emailRegex.hasMatch(_email.text.trim())) {
+      final msg = 'Please enter a valid email address';
+      setState(() { error = msg; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      return;
+    }
+
+    // Password length validation
+    if (_pass.text.length <= 8) {
+      final msg = 'Password must be greater than 8 characters';
+      setState(() { error = msg; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+      return;
+    }
+
     setState(() { loading = true; error = ''; });
     print('doSignup: attempting ${_user.text}');
     try {
       final res = await http
-          .post(Uri.parse('http://10.0.2.2:5001/api/register'),
+          .post(Uri.parse('$apiBaseUrl/api/register'),
               headers: {'Content-Type': 'application/json'},
               body: jsonEncode({
                 'username': _user.text,
@@ -269,8 +300,14 @@ class _SignupPageState extends State<SignupPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                     onPressed: loading ? null : doSignup,
-                    style: ElevatedButton.styleFrom(backgroundColor: primaryButton, padding: const EdgeInsets.symmetric(vertical: 14)),
-                    child: loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Text('Create account'))),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryButton,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: loading 
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
+                        : const Text('Create account', style: TextStyle(color: Colors.white)))),
           ],
         ),
       ),
@@ -281,18 +318,26 @@ class _SignupPageState extends State<SignupPage> {
 class MainTabView extends StatefulWidget {
   final String userId;
   final VoidCallback onLogout;
-  const MainTabView({required this.userId, required this.onLogout, super.key});
+  final int initialIndex;
+  const MainTabView({required this.userId, required this.onLogout, this.initialIndex = 1, super.key});
 
   @override
   State<MainTabView> createState() => _MainTabViewState();
 }
 
 class _MainTabViewState extends State<MainTabView> {
-  int _index = 1; // default to Quiz in middle
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final pages = [LeaderboardPage(userId: widget.userId), QuizPage(), ProfilePage(userId: widget.userId, onLogout: widget.onLogout)];
+    Widget quizPage = QuizPage(userId: widget.userId);
+    final pages = [LeaderboardPage(userId: widget.userId), quizPage, ProfilePage(userId: widget.userId, onLogout: widget.onLogout)];
     return Scaffold(
       appBar: AppBar(title: const Text('AstroQuizzer')),
       body: pages[_index],
@@ -322,6 +367,7 @@ class LeaderboardPage extends StatefulWidget {
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
   List<dynamic> top = [];
+  Map<String, dynamic>? currentUserInfo;
   String? error;
   bool loading = true;
 
@@ -337,13 +383,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       error = null;
     });
     try {
-      final res = await http.post(Uri.parse('http://10.0.2.2:5001/api/leaderboard'),
+      final res = await http.post(Uri.parse('$apiBaseUrl/api/leaderboard'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'_id': widget.userId}));
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
         setState(() {
           top = j['topHundred'] ?? [];
+          currentUserInfo = j['user'];
         });
       } else {
         setState(() {
@@ -359,6 +406,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         loading = false;
       });
     }
+  }
+
+  bool isCurrentUser(dynamic item) {
+    if (currentUserInfo == null) return false;
+    // Match by username or _id
+    return item['_id'] == widget.userId || item['username'] == currentUserInfo!['username'];
   }
 
   @override
@@ -377,13 +430,50 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               itemCount: top.length,
               itemBuilder: (context, i) {
                 final item = top[i];
+                final rank = i + 1;
+                final isUser = isCurrentUser(item);
+                final medal = rank == 1 ? '🥇' : rank == 2 ? '🥈' : rank == 3 ? '🥉' : null;
                 return Card(
-                  color: const Color(0xFF020617),
+                  color: isUser ? primaryButton.withOpacity(0.2) : const Color(0xFF020617),
                   margin: const EdgeInsets.symmetric(vertical: 6),
+                  child: Container(
+                    decoration: isUser
+                        ? BoxDecoration(
+                            border: Border.all(color: primaryButton, width: 2),
+                            borderRadius: BorderRadius.circular(8),
+                          )
+                        : null,
                   child: ListTile(
-                    leading: CircleAvatar(backgroundColor: primaryButton, child: Text((i+1).toString())),
-                    title: Text(item['username'] ?? '', style: const TextStyle(color: textPrimary)),
-                    trailing: Text('${item['totalScore'] ?? 0}', style: const TextStyle(color: textMuted)),
+                      leading: medal != null
+                          ? Text(
+                              medal,
+                              style: const TextStyle(fontSize: 24),
+                            )
+                          : CircleAvatar(
+                              backgroundColor: isUser ? primaryButton : primaryButton.withOpacity(0.3),
+                              child: Text(
+                                rank.toString(),
+                                style: TextStyle(
+                                  color: isUser ? Colors.white : textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                      title: Text(
+                        item['username'] ?? '',
+                        style: TextStyle(
+                          color: isUser ? primaryButton : textPrimary,
+                          fontWeight: isUser ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                      trailing: Text(
+                        '${item['totalScore'] ?? 0}',
+                        style: TextStyle(
+                          color: isUser ? primaryButton : textMuted,
+                          fontWeight: isUser ? FontWeight.bold : FontWeight.normal,
+                        ),
+                      ),
+                    ),
                   ),
                 );
               },
@@ -395,19 +485,486 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   }
 }
 
-class QuizPage extends StatelessWidget {
-  const QuizPage({super.key});
+class QuizPage extends StatefulWidget {
+  final String userId;
+  const QuizPage({required this.userId, super.key});
+
+  @override
+  State<QuizPage> createState() => _QuizPageState();
+}
+
+class _QuizPageState extends State<QuizPage> {
+  List<dynamic> questions = [];
+  List<int?> answers = [null, null, null, null, null];
+  String? error;
+  bool loadingQuestions = true;
+  bool submitting = false;
+  Map<String, dynamic>? userProfile;
+
+  @override
+  void initState() {
+    super.initState();
+    checkUserStatus();
+  }
+
+  Future<void> checkUserStatus() async {
+    try {
+      final res = await http.get(Uri.parse('$apiBaseUrl/api/user/${widget.userId}'));
+      final j = jsonDecode(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          userProfile = j;
+        });
+        if (j['dailyQuizCompleted'] == true) {
+          // Already completed, navigate to results
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (_) => QuizResultsPage(userId: widget.userId, score: j['currentDaysPoints'] ?? 0))
+            );
+          });
+        } else {
+          // Not completed, fetch questions
+          fetchQuestions();
+        }
+      } else {
+        setState(() {
+          error = j['error'] ?? 'Failed to load user';
+          loadingQuestions = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        error = 'Network error';
+        loadingQuestions = false;
+      });
+    }
+  }
+
+  Future<void> fetchQuestions() async {
+    setState(() {
+      loadingQuestions = true;
+      error = null;
+    });
+    try {
+      final res = await http.get(Uri.parse('$apiBaseUrl/api/questions/today'));
+      final j = jsonDecode(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          questions = j['questions'] ?? [];
+          loadingQuestions = false;
+        });
+      } else {
+        setState(() {
+          error = j['error'] ?? 'Failed to load questions';
+          loadingQuestions = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        error = 'Network error';
+        loadingQuestions = false;
+      });
+    }
+  }
+
+  Color getDifficultyColor(String difficulty) {
+    switch (difficulty) {
+      case 'easy':
+        return Colors.green;
+      case 'medium':
+        return Colors.yellow;
+      case 'hard':
+        return Colors.red;
+      default:
+        return textMuted;
+    }
+  }
+
+  bool get canSubmit => answers.every((a) => a != null) && !submitting;
+
+  Future<void> submitQuiz() async {
+    if (!canSubmit) return;
+
+    setState(() {
+      submitting = true;
+    });
+
+    try {
+      final res = await http.post(
+        Uri.parse('$apiBaseUrl/api/quiz/submit'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': widget.userId,
+          'answers': answers
+        })
+      );
+
+      final j = jsonDecode(res.body);
+      if (res.statusCode == 200) {
+        // Show loading while updating total score (simulated delay)
+        await Future.delayed(const Duration(milliseconds: 500));
+
+        // Prepare in-memory review payload
+        final reviewQuestions = List<Map<String, dynamic>>.from(questions);
+        final results = (j['results'] as List).cast<Map>();
+
+        // Optionally clear local state
+        answers = [null, null, null, null, null];
+        questions = [];
+
+        // Navigate to results with review data in memory
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => QuizResultsPage(
+              userId: widget.userId,
+              score: j['score'] ?? 0,
+              questionsForReview: reviewQuestions,
+              resultsForReview: results,
+            )
+          )
+        );
+      } else {
+        setState(() {
+          error = j['error'] ?? 'Failed to submit quiz';
+          submitting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error!)));
+      }
+    } catch (e) {
+      setState(() {
+        error = 'Network error';
+        submitting = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Network error')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (loadingQuestions || submitting) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (error != null && questions.isEmpty) {
     return Center(
         child: Column(
             mainAxisSize: MainAxisSize.min,
-            children: const [
-          Text('Quiz area', style: TextStyle(color: textPrimary, fontSize: 20)),
-          SizedBox(height: 8),
-          Text('Start a quiz here', style: TextStyle(color: textMuted))
-        ]));
+          children: [
+            Text(error!, style: const TextStyle(color: Color(0xFFE33))),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: fetchQuestions,
+              child: const Text('Retry'),
+            )
+          ],
+        ),
+      );
+    }
+
+    if (questions.isEmpty) {
+      return const Center(child: Text('No questions available', style: TextStyle(color: textMuted)));
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: bgPrimary,
+      child: Column(
+        children: [
+          const Text('Daily Quiz', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textPrimary)),
+          const SizedBox(height: 16),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                children: List.generate(questions.length, (index) {
+                  final q = questions[index];
+                  final diffColor = getDifficultyColor(q['difficulty']);
+                  return Card(
+                    color: const Color(0xFF020617),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: diffColor.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: diffColor),
+                                ),
+                                child: Text(
+                                  q['difficulty'].toUpperCase(),
+                                  style: TextStyle(color: diffColor, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ),
+                              Text(
+                                '${q['points']} pts',
+                                style: TextStyle(color: diffColor, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            '${index + 1}. ${q['question']}',
+                            style: const TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 12),
+                          ...List.generate(4, (optIndex) {
+                            return RadioListTile<int>(
+                              title: Text(
+                                q['options'][optIndex],
+                                style: TextStyle(
+                                  color: answers[index] == optIndex ? textPrimary : textMuted,
+                                ),
+                              ),
+                              value: optIndex,
+                              groupValue: answers[index],
+                              onChanged: (value) {
+                                setState(() {
+                                  answers[index] = value;
+                                });
+                              },
+                              activeColor: primaryButton,
+                            );
+                          }),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: canSubmit ? submitQuiz : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryButton,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: submitting
+                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Submit Quiz', style: TextStyle(color: Colors.white)),
+            ),
+          ),
+          if (error != null && !submitting) ...[
+            const SizedBox(height: 8),
+            Text(error!, style: const TextStyle(color: Color(0xFFE33))),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class QuizResultsPage extends StatelessWidget {
+  final String userId;
+  final int score;
+  final List<Map<String, dynamic>>? questionsForReview;
+  final List<Map>? resultsForReview;
+  
+  const QuizResultsPage({
+    required this.userId,
+    required this.score,
+    this.questionsForReview,
+    this.resultsForReview,
+    super.key
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final canReview = questionsForReview != null &&
+        resultsForReview != null &&
+        questionsForReview!.length == 5 &&
+        resultsForReview!.length == 5;
+
+    return Scaffold(
+      backgroundColor: bgPrimary,
+      appBar: AppBar(title: const Text('Quiz Results')),
+      body: Container(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Daily Quiz Complete!',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: textPrimary),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              '$score / 9',
+              style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: primaryButton),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'points earned',
+              style: TextStyle(fontSize: 18, color: textMuted),
+            ),
+            const SizedBox(height: 32),
+            if (canReview)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => QuizReviewPage(
+                          questions: questionsForReview!,
+                          results: resultsForReview!,
+                        ),
+                      ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: primaryButton, width: 1.5),
+                    foregroundColor: primaryButton,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Review my answers'),
+                ),
+              ),
+            if (canReview) const SizedBox(height: 24),
+            InkWell(
+              onTap: () async {
+                final uri = Uri.parse('https://astroquizzer.xyz/');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: primaryButton, width: 1.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.open_in_new, color: primaryButton, size: 18),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Learn more about today\'s topic',
+                      style: TextStyle(
+                        color: primaryButton,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                      builder: (_) => MainTabView(
+                        userId: userId,
+                        onLogout: () {},
+                        initialIndex: 0, // Leaderboard tab
+                      ),
+                    ),
+                    (route) => false,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: primaryButton,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text('View Leaderboard', style: TextStyle(color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class QuizReviewPage extends StatelessWidget {
+  final List<Map<String, dynamic>> questions;
+  final List<Map> results; // { questionIndex, userAnswer, correctAnswer, isCorrect }
+
+  const QuizReviewPage({
+    super.key,
+    required this.questions,
+    required this.results,
+  });
+
+  Color colorFor(int idx, int correct, int user, bool isCorrect) {
+    if (idx == correct) return const Color(0xFF22c55e); // green
+    if (!isCorrect && idx == user) return const Color(0xFFef4444); // red
+    return textMuted;
+  }
+
+  FontWeight weightFor(int idx, int correct, int user, bool isCorrect) {
+    if (idx == correct) return FontWeight.w700;
+    if (!isCorrect && idx == user) return FontWeight.w600;
+    return FontWeight.w400;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: bgPrimary,
+      appBar: AppBar(title: const Text('Review Answers')),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: questions.length,
+        itemBuilder: (context, i) {
+          final q = questions[i];
+          final r = results[i];
+          final correct = (r['correctAnswer'] as num).toInt();
+          final user = (r['userAnswer'] as num).toInt();
+          final isCorrect = (r['isCorrect'] as bool);
+          return Card(
+            color: const Color(0xFF020617),
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${i + 1}. ${q['question']}',
+                    style: const TextStyle(color: textPrimary, fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 10),
+                  for (int idx = 0; idx < 4; idx++)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: colorFor(idx, correct, user, isCorrect).withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: colorFor(idx, correct, user, isCorrect)),
+                      ),
+                      child: Text(
+                        q['options'][idx],
+                        style: TextStyle(
+                          color: colorFor(idx, correct, user, isCorrect),
+                          fontWeight: weightFor(idx, correct, user, isCorrect),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -437,7 +994,7 @@ class _ProfilePageState extends State<ProfilePage> {
       error = null;
     });
     try {
-      final res = await http.get(Uri.parse('http://10.0.2.2:5001/api/user/${widget.userId}'));
+      final res = await http.get(Uri.parse('$apiBaseUrl/api/user/${widget.userId}'));
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
         setState(() {
@@ -470,9 +1027,6 @@ class _ProfilePageState extends State<ProfilePage> {
       color: bgPrimary,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,13 +1039,6 @@ class _ProfilePageState extends State<ProfilePage> {
                   Text(
                     '${profile!['firstName'] ?? ''} ${profile!['lastName'] ?? ''}',
                     style: const TextStyle(color: textMuted),
-                  ),
-                ],
-              ),
-              ElevatedButton(
-                onPressed: widget.onLogout,
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1e293b)),
-                child: const Text('Log out'),
               ),
             ],
           ),
@@ -525,6 +1072,54 @@ class _ProfilePageState extends State<ProfilePage> {
                       Text('${profile!['rank'] ?? '-'}', style: const TextStyle(color: textMuted)),
                     ],
                   ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          InkWell(
+            onTap: () async {
+              final uri = Uri.parse('https://astroquizzer.xyz/');
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                border: Border.all(color: primaryButton, width: 1.5),
+                borderRadius: BorderRadius.circular(8),
+                color: const Color(0xFF020617),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.settings, color: primaryButton, size: 20),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Change your settings',
+                          style: TextStyle(
+                            color: primaryButton,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'This can only be done on the website',
+                          style: TextStyle(
+                            color: textMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.open_in_new, color: primaryButton, size: 18),
                 ],
               ),
             ),
