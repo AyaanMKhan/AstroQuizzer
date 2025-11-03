@@ -5,6 +5,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import CreateAccountPage from './pages/CreateAccountPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
+import ApodPage from './pages/ApodPage';
 
 export default function App() {
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ export default function App() {
             onSignUpClick={() => navigate('/signup')}
             onLeaderboardClick={() => navigate('/leaderboard')}
             onProfileClick={() => navigate('/profile')}
+            onApodClick={() => navigate('/apod')}
           />
         } />
         <Route path="/login" element={
@@ -36,6 +38,7 @@ export default function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/apod" element={<ApodPage />} />
       </Routes>
     </div>
   );

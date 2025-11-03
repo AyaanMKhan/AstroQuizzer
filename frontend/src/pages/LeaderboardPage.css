@@ -25,20 +25,6 @@
   gap: 0.5rem;
 }
 
-.logo::before {
-  content: 'K';
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  background: #3b82f6;
-  color: #fff;
-  border-radius: 50%;
-  font-weight: 700;
-  font-size: 1rem;
-}
-
 .btns {
   display: flex;
   gap: 1rem;
@@ -46,55 +32,40 @@
 }
 
 .btn {
-  padding: 0.5rem 1.5rem;
+  padding: 0.6rem 1.1rem;
   border: none;
-  border-radius: 6px;
+  border-radius: 16px;
   cursor: pointer;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.3s;
-}
-
-.leaderboard {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.leaderboard:hover,
-.leaderboard.active {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.profile {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.profile:hover,
-.profile.active {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.sign-in {
-  background: transparent;
-  color: #94a3b8;
-}
-
-.sign-in:hover {
-  background: #1e293b;
-  color: #e2e8f0;
-}
-
-.sign-up {
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
   background: #2563eb;
-  color: white;
+  color: #ffffff;
 }
 
-.sign-up:hover {
-  background: #3b82f6;
+.apod,
+.leaderboard,
+.profile {
+  background: #2563eb;
+  color: #ffffff;
+  min-width: 120px;
+  width: 180px; /* keep pills consistent width */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.apod.active,
+.leaderboard.active,
+.profile.active { background: #1e293b; color: #3b82f6; }
+/* Keep active state unchanged on hover */
+.apod.active:hover,
+.leaderboard.active:hover,
+.profile.active:hover { background: #1e293b; color: #3b82f6; }
+
+.sign-in { background: #2563eb; color: #ffffff; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-up { background: #2563eb; color: white; width: 180px; display: inline-flex; align-items: center; justify-content: center; }
+.sign-up:hover { background: #3b82f6; }
 
 .content {
   max-width: 800px;
@@ -108,8 +79,6 @@
   color: #ffffff;
   font-weight: 700;
   text-align: center;
-  position: relative;
-  z-index: 1;
 }
 
 .table {
@@ -123,7 +92,7 @@
   z-index: 1;
 }
 
-.header {
+.table-header {
   display: grid;
   grid-template-columns: 80px 1fr 120px;
   padding: 1rem 1.5rem;
@@ -148,6 +117,15 @@
   background: #020617;
 }
 
+.row.highlight {
+  background: rgba(37, 99, 235, 0.15);
+  border-left: 3px solid #2563eb;
+}
+
+.row.highlight:hover {
+  background: rgba(37, 99, 235, 0.25);
+}
+
 .row:last-child {
   border-bottom: none;
 }
@@ -159,6 +137,17 @@
 
 .col:first-of-type {
   color: #e2e8f0;
+}
+
+.rank-col {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.medal {
+  font-size: 1.5rem;
+  line-height: 1;
 }
 
 .col:nth-of-type(2) {

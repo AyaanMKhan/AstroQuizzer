@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './LeaderboardPage.css';
 
 type LeaderboardRow = {
+  _id?: string;
   rank: number;
   username: string;
   totalScore: number;
@@ -59,6 +60,7 @@ export default function LeaderboardPage() {
         <div className="nav">
           <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
+            <button className="btn apod" onClick={() => navigate('/apod')}>Today's Picture</button>
             <button className="btn leaderboard active">Leaderboard</button>
             <button className="btn profile" onClick={() => navigate('/profile')}>Profile</button>
             {isLoggedIn ? (
@@ -80,42 +82,32 @@ export default function LeaderboardPage() {
       <div className="content">
         <h1>Leaderboard</h1>
 
-        {currentUser && (
-          <div className="card" style={{ marginBottom: 16 }}>
-            <div className="header">
-              <div className="avatar">{currentUser.username.slice(0,2).toUpperCase()}</div>
-              <h2>{currentUser.username}</h2>
-            </div>
-            <div className="stats">
-              <div className="stat">
-                <div className="val">#{currentUser.rank}</div>
-                <div className="lbl">Rank</div>
-              </div>
-              <div className="stat">
-                <div className="val">{currentUser.score}</div>
-                <div className="lbl">Score</div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {error && <div style={{ color: '#e33', marginBottom: 12 }}>{error}</div>}
         {loading ? (
           <div>Loading...</div>
         ) : (
           <div className="table">
-            <div className="header">
+            <div className="table-header">
               <span className="col">Rank</span>
               <span className="col">Player</span>
               <span className="col">Score</span>
             </div>
-            {rows.map((player) => (
-              <div key={player.rank} className="row">
-                <span className="col">{player.rank}</span>
-                <span className="col">{player.username}</span>
-                <span className="col">{player.totalScore}</span>
-              </div>
-            ))}
+            {rows.map((player) => {
+              const isCurrentUser = currentUser && currentUser.username === player.username;
+              const medal = player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : null;
+              return (
+                <div 
+                  key={player.rank} 
+                  className={`row ${isCurrentUser ? 'highlight' : ''}`}
+                >
+                  <span className="col rank-col">
+                    {medal ? <span className="medal">{medal}</span> : player.rank}
+                  </span>
+                  <span className="col">{player.username}</span>
+                  <span className="col">{player.totalScore}</span>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
