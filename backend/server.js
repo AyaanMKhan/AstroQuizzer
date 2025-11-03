@@ -188,6 +188,67 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+app.post("/api/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: "No account found with that email" });
+
+    const resetToken = jwt.sign(
+      { email },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: `"AstroQuizzer" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Reset Your Password",
+      html: `
+        <h3>Password Reset Request</h3>
+        <p>Click the link below to reset your password (valid for 15 minutes):</p>
+        <a href="${resetLink}" target="_blank">${resetLink}</a>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    return res.status(200).json({ message: "Password reset email sent" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    const { email } = decoded;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: "Invalid token" });
+
+    user.password = newPassword; // hash this if you’re hashing passwords!
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful!" });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    res.status(400).json({ error: "Invalid or expired token" });
+  }
+});
+
+
 app.post('/api/leaderboard', async (req, res) => {
   try {
     const { _id, jwtToken } = req.body || {};
