@@ -452,39 +452,47 @@ app.post('/api/quiz/submit', async (req, res) => {
 });
 
 // Get Today's APOD
-app.get('/api/apod/today', async (req, res) => {
+app.get('/api/apod/today', async (_req, res) => {
   try {
-    console.log("🌌 Endpoint called: Fetching fresh APOD...");
-    const apod = await fetchAndStoreApod();
-    
-    // If resources aren't populated yet, generate them
-    if (!apod.additionalResources || apod.additionalResources.length === 0) {
-      const { generateAdditionalResources, updateApodWithResources } = await import("./utils/generateResources.js");
-      console.log("🔍 Resources not found, generating now...");
-      const resources = await generateAdditionalResources(apod.date, apod.title, apod.explanation);
-      if (resources.length > 0) {
-        await updateApodWithResources(apod.date, resources);
-        // Fetch updated APOD
-        const updatedApod = await Apod.findOne({ date: apod.date }).lean();
-        apod.additionalResources = updatedApod?.additionalResources || [];
+    // 1) Try to serve what's already in the DB – no date checks, just latest
+    let apodDoc = await Apod.findOne({}, null, { sort: { date: -1 } }).lean();
+
+    // 2) If nothing exists in DB, fall back to fetch-and-store once
+    if (!apodDoc) {
+      console.log("🌌 No APOD in DB. Fetching one-time to seed...");
+      const fetched = await fetchAndStoreApod();
+      apodDoc = fetched ? await Apod.findOne({ date: fetched.date }).lean() : null;
+    }
+
+    if (!apodDoc) {
+      return res.status(404).json({ error: 'APOD not available' });
+    }
+
+    // 3) Ensure resources exist, but do not block response if generation fails
+    if (!apodDoc.additionalResources || apodDoc.additionalResources.length === 0) {
+      try {
+        const { generateAdditionalResources, updateApodWithResources } = await import("./utils/generateResources.js");
+        const resources = await generateAdditionalResources(apodDoc.date, apodDoc.title, apodDoc.explanation);
+        if (resources.length > 0) {
+          await updateApodWithResources(apodDoc.date, resources);
+          const updated = await Apod.findOne({ date: apodDoc.date }).lean();
+          apodDoc.additionalResources = updated?.additionalResources || [];
+        }
+      } catch (e) {
+        console.warn("⚠️ Resource generation skipped:", e.message);
       }
     }
-    
+
     return res.status(200).json({
-      date: apod.date,
-      title: apod.title,
-      url: apod.url,
-      explanation: apod.explanation,
-      media_type: apod.media_type,
-      additionalResources: apod.additionalResources || []
+      date: apodDoc.date,
+      title: apodDoc.title,
+      url: apodDoc.url,
+      explanation: apodDoc.explanation,
+      media_type: apodDoc.media_type,
+      additionalResources: apodDoc.additionalResources || []
     });
   } catch (err) {
     console.error("❌ APOD route error:", err.message);
-    if (err.response) {
-      return res.status(err.response.status || 500).json({
-        error: 'Failed to fetch APOD from NASA API'
-      });
-    }
     return res.status(500).json({ error: 'Server error' });
   }
 });

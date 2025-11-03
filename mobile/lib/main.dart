@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'starfield.dart';
 import 'dart:convert';
 
 void main() {
@@ -41,6 +42,12 @@ class MyApp extends StatelessWidget {
           bodyLarge: TextStyle(color: textPrimary),
           bodyMedium: TextStyle(color: textMuted),
         ),
+      ),
+      builder: (context, child) => Stack(
+        children: [
+          const Positioned.fill(child: StarfieldBackground()),
+          if (child != null) child,
+        ],
       ),
       home: AuthGate(key: authGateKey),
       debugShowCheckedModeBanner: false,
@@ -144,7 +151,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgPrimary,
+      backgroundColor: Colors.transparent,
       body: Center(
         child: Container(
           padding: const EdgeInsets.all(20),
@@ -276,7 +283,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgPrimary,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Create account')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -786,7 +793,7 @@ class QuizResultsPage extends StatelessWidget {
         resultsForReview!.length == 5;
 
     return Scaffold(
-      backgroundColor: bgPrimary,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Quiz Results')),
       body: Container(
         padding: const EdgeInsets.all(24),
@@ -917,7 +924,7 @@ class QuizReviewPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: bgPrimary,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(title: const Text('Review Answers')),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
