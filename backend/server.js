@@ -285,7 +285,7 @@ app.post("/api/login", async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: "Incorrect email or password" });
     }
-    const user = await User.findOne({username: String(username).trim() }).select("+password");
+    user = await User.findOne({username: String(username).trim() }).select("+password");
     if (!user) return res.status(400).json({error: "Incorrect username or password"});
 
     let isValid = false;
@@ -456,10 +456,6 @@ app.post('/api/leaderboard', async (req, res) => {
 // Get User Profile
 app.get('/api/user/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    if (!id) {
-      return res.status(400).json({ error: 'Missing id' });
-    }
     const { id, jwtToken } = req.params;
     if (!id) return res.status(400).json({ error: 'Missing id' });
 
@@ -510,7 +506,6 @@ app.get('/api/user/:id', async (req, res) => {
       quizzesTaken: user.quizzesTaken || 0,
       currentDaysPoints: user.currentDaysPoints || 0,
       dailyQuizCompleted: user.dailyQuizCompleted || false,
-      rank
       favoriteSign: user.favoriteSign || 'Pisces',
       rank,
       jwtToken: refreshedToken
