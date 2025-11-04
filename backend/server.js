@@ -150,7 +150,9 @@ const userSchema = new mongoose.Schema({
     ]
   },
   // for old plaintext passwords
-  password:     { type: String, select: false }
+  password:     { type: String, select: false },
+  dailyQuizCompleted: {type: Boolean, default: false},
+  currentDaysPoints:  {type: Number, default: 0, min: 0}
 }, {timestamps: true});
 
 const User = mongoose.model("User", userSchema);
@@ -185,9 +187,10 @@ app.post("/api/register", async (req, res) => {
       verified: false,
       quizzesTaken: 0,
       totalScore: 0,
+      dailyQuizCompleted: false,
       currentDaysPoints: 0
     });
-    const u = await User.create({username, email, firstName, lastName, password, verified: false, quizzesTaken: 0, totalScore: 0, favoriteSign: favoriteSign || "Pisces"});
+    const u = await User.create({username, email, firstName, lastName, password, verified: false, quizzesTaken: 0, totalScore: 0, dailyQuizCompleted: false, currentDaysPoints: 0, favoriteSign: favoriteSign || "Pisces"});
 
 
     const verificationToken = jwt.sign(
@@ -285,8 +288,8 @@ app.post("/api/login", async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: "Incorrect email or password" });
     }
-    user = await User.findOne({username: String(username).trim() }).select("+password");
-    if (!user) return res.status(400).json({error: "Incorrect username or password"});
+    //user = await User.findOne({username: String(username).trim() }).select("+password");
+    //if (!user) return res.status(400).json({error: "Incorrect username or password"});
 
     let isValid = false;
     if (user.passwordHash) {
