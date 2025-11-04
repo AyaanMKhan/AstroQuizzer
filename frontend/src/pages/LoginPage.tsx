@@ -14,7 +14,7 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE = 'http://localhost:5001';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

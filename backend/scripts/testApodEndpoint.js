@@ -1,4 +1,8 @@
 import axios from "axios";
+import dotenv from "dotenv";
+
+// Load environment variables from backend/.env when running this script locally
+dotenv.config({ path: new URL('../.env', import.meta.url).pathname });
 
 const API_URL = process.env.API_URL || "http://localhost:5001";
 
