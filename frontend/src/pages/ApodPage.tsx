@@ -94,6 +94,11 @@ export default function ApodPage() {
                 <span>NASA's Picture of the Day</span>
               </div>
               <h1 className="apod-title">{apod.title}</h1>
+              {apod.date && (
+                <div className="apod-date">
+                  <span>{formatDate(apod.date)}</span>
+                </div>
+              )}
             </div>
 
             <div className="apod-main">
