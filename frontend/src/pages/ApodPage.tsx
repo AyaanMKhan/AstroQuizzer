@@ -108,7 +108,7 @@ export default function ApodPage() {
                     />
                     <div className="image-overlay"></div>
                   </div>
-                ) : (
+                ) : apod.url.includes('youtube.com') || apod.url.includes('youtu.be') || apod.url.includes('vimeo.com') ? (
                   <div className="video-wrapper">
                     <iframe
                       src={apod.url}
@@ -117,6 +117,18 @@ export default function ApodPage() {
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     ></iframe>
+                  </div>
+                ) : (
+                  <div className="video-wrapper">
+                    <video
+                      src={apod.url}
+                      title={apod.title}
+                      className="apod-video"
+                      controls
+                      playsInline
+                    >
+                      Your browser does not support the video tag.
+                    </video>
                   </div>
                 )}
               </div>
