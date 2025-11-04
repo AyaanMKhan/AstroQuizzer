@@ -155,7 +155,7 @@ const userSchema = new mongoose.Schema({
   currentDaysPoints:  {type: Number, default: 0, min: 0}
 }, {timestamps: true});
 
-const User = mongoose.model("User", userSchema);
+//const User = mongoose.model("User", userSchema);
 
 // API Register
 app.post("/api/register", async (req, res) => {
