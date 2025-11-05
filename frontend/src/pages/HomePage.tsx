@@ -1,15 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import './HomePage.css';
-import Globe from '../components/Globe';
 
 interface HomePageProps {
   onSignInClick: () => void;
   onSignUpClick: () => void;
   onLeaderboardClick: () => void;
   onProfileClick: () => void;
+  onApodClick?: () => void;
 }
 
-export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardClick, onProfileClick }: HomePageProps) {
+export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardClick, onProfileClick, onApodClick }: HomePageProps) {
   const navigate = useNavigate();
   const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('aq_user');
 
@@ -19,6 +19,7 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
         <div className="nav">
           <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
+            {onApodClick && <button className="btn apod" onClick={onApodClick}>Today's Picture</button>}
             <button className="btn leaderboard" onClick={onLeaderboardClick}>Leaderboard</button>
             <button className="btn profile" onClick={onProfileClick}>Profile</button>
             {isLoggedIn ? (
@@ -39,9 +40,23 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
       </nav>
       <div className="content">
         <h1>Welcome to AstroQuizzer</h1>
-        <p>Test your astronomical knowledge with our interactive quizzes!</p>
-        <div style={{ marginTop: '40px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Globe />
+        <p>Explore the cosmos with daily astronomy pictures and compete with fellow enthusiasts!</p>
+        <div className="feature-grid">
+          <div className="feature-card top">
+            <h3>Today's Picture</h3>
+            <p>Discover NASA's Astronomy Picture of the Day with detailed explanations and resources</p>
+            {onApodClick && <button className="feature-btn" onClick={onApodClick}>View Picture</button>}
+          </div>
+          <div className="feature-card left">
+            <h3>Leaderboard</h3>
+            <p>See where you rank among fellow astronomy enthusiasts</p>
+            <button className="feature-btn" onClick={onLeaderboardClick}>View Leaderboard</button>
+          </div>
+          <div className="feature-card right">
+            <h3>Profile</h3>
+            <p>Track your progress and view your achievements</p>
+            <button className="feature-btn" onClick={onProfileClick}>View Profile</button>
+          </div>
         </div>
       </div>
     </div>

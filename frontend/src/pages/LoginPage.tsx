@@ -9,18 +9,18 @@ interface LoginPageProps {
 
 export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: LoginPageProps) {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const API_BASE = 'http://localhost:5001';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!username || !password) {
-      setError('Please enter username and password');
+    if (!email || !password) {
+      setError('Please enter email and password');
       return;
     }
     setLoading(true);
@@ -28,7 +28,7 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
       const res = await fetch(`${API_BASE}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -38,7 +38,7 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
       try {
         localStorage.setItem('aq_user', JSON.stringify({
           id: data.id,
-          username,
+          email,
           firstName: data.firstName || '',
           lastName: data.lastName || ''
         }));
@@ -65,7 +65,7 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
         
         <div className="content">
           <form className="form" onSubmit={handleSubmit}>
-            <input type="text" placeholder="Username" className="input" value={username} onChange={(e) => setUsername(e.target.value)} />
+            <input type="email" placeholder="Email" className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
             <input type="password" placeholder="Password" className="input" value={password} onChange={(e) => setPassword(e.target.value)} />
             {error && <div style={{ color: '#e33', marginTop: 8 }}>{error}</div>}
             <button type="submit" className="btn" disabled={loading}>
