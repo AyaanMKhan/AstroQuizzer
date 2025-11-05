@@ -310,17 +310,17 @@ app.post("/api/login", async (req, res) => {
     if(!user.verified) return res.status(400).json({error: "Email unverified"});
 
     //json token stuff
-    try
-    {
-      const token = require("./createJWT.js");
-      ret = token.createToken( user.firstName, user.lastName, user._id);
-    }
-    catch(e)
-    {
-      ret = {error:e.message};
-    }
-
-    return res.status(200).json(ret);
+    //try
+    //{
+    //  const token = require("./createJWT.js");
+    //  ret = token.createToken( user.firstName, user.lastName, user._id);
+    //}
+    //catch(e)
+    //{
+    //  ret = {error:e.message};
+    //}
+    return res.status(200).json(user.firstName, user.lastName, user._id)
+    //return res.status(200).json(ret);
 
   } catch (err) {
     console.error("❌ Login error:", err.message);
