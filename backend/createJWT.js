@@ -1,57 +1,44 @@
-const jwt = require("jsonwebtoken");
-require("dotenv").config();
+import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
 
-exports.createToken = function ( fn, ln, id )
-{
-    return _createToken( fn, ln, id );
+dotenv.config();
+
+export function createToken(fn, ln, id) {
+  return _createToken(fn, ln, id);
 }
-_createToken = function ( fn, ln, id )
 
-{
-    try
-    {
-        const expiration = new Date();
-        const user = {userId:id,firstName:fn,lastName:ln};
-        const accessToken = jwt.sign( user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h'});
-        // In order to exoire with a value other than the default, use the
-        // following
-        /*
-        const accessToken= jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: '30m'} );
-        '24h'
-        '365d'
-        */
-        var ret = {accessToken:accessToken};
-        }
-        catch(e)
-        {
-        var ret = {error:e.message};
-        }
-        return ret;
+function _createToken(fn, ln, id) {
+  try {
+    const user = { id, firstName: fn, lastName: ln };
+    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '24h' });
+    return { accessToken };
+  } catch (e) {
+    return { error: e.message };
+  }
 }
-exports.isExpired = function( token )
 
-{
-    var isError = jwt.verify( token, process.env.ACCESS_TOKEN_SECRET,
-        (err, verifiedJwt) =>
-    {
-        if( err )
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
+export function isExpired(token) {
+  try {
+    let expired = false;
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err) => {
+      if (err) expired = true;
     });
-    return isError;        
+    return expired;
+  } catch (e) {
+    return true;
+  }
 }
 
-exports.refresh = function( token )
-{
- var ud = jwt.decode(token,{complete:true});
- var userId = ud.payload.id;
- var firstName = ud.payload.firstName;
- var lastName = ud.payload.lastName;
- return _createToken( firstName, lastName, userId );
+export function refresh(token) {
+  try {
+    const ud = jwt.decode(token, { complete: true });
+    const userId = ud?.payload?.id;
+    const firstName = ud?.payload?.firstName;
+    const lastName = ud?.payload?.lastName;
+    return _createToken(firstName, lastName, userId);
+  } catch (e) {
+    return null;
+  }
 }
+
+export default { createToken, isExpired, refresh };

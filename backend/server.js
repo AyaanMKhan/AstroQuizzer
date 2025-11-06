@@ -12,6 +12,7 @@ import { initQuestionsCron } from "./cron/questionsCron.js";
 import { initResetDailyQuizCron } from "./cron/resetDailyQuiz.js";
 import jwt from "jsonwebtoken";
 import nodemailer from "nodemailer"
+import * as createJWT from './createJWT.js';
 
 dotenv.config();
 
@@ -140,15 +141,6 @@ const userSchema = new mongoose.Schema({
   verified:     { type: Boolean, default: false },
   quizzesTaken: { type: Number, default: 0, min: 0 },
   totalScore:   { type: Number, default: 0, min: 0 },
-  favoriteSign: {
-    type: String,
-    default: "Pisces",
-    //locks to known signs
-    enum: [
-      "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
-      "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces"
-    ]
-  },
   // for old plaintext passwords
   password:     { type: String, select: false },
   dailyQuizCompleted: {type: Boolean, default: false},
@@ -161,7 +153,6 @@ const userSchema = new mongoose.Schema({
 app.post("/api/register", async (req, res) => {
   try {
     let { username, password, firstName, lastName, email } = req.body || {};
-    
     if (!username || !password || !firstName || !lastName || !email) {
       return res.status(400).json({ error: "All fields are required" });
     }
@@ -188,50 +179,8 @@ app.post("/api/register", async (req, res) => {
       quizzesTaken: 0,
       totalScore: 0,
       dailyQuizCompleted: false,
-      currentDaysPoints: 0
+      currentDaysPoints: 0,
     });
-    const u = await User.create({username, email, firstName, lastName, password, verified: false, quizzesTaken: 0, totalScore: 0, dailyQuizCompleted: false, currentDaysPoints: 0, favoriteSign: favoriteSign || "Pisces"});
-
-
-    const verificationToken = jwt.sign(
-      { email },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "1d" }
-    );
-
-    // Email verification link (frontend route can call backend verify endpoint)
-    const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-
-    // Configure transporter (example using Gmail, but you can use SendGrid, SES, etc.)
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    const mailOptions = {
-      from: `"Astroquizzer" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Verify your email address",
-      html: `
-        <h2>Welcome, ${firstName}!</h2>
-        <p>Please verify your email by clicking the link below:</p>
-        <a href="${verifyLink}" target="_blank">Verify Email</a>
-        <p>This link will expire in 24 hours.</p>
-      `
-    };
-
-    //console.log("Verification link:", verifyLink);
-    
-    //await transporter.sendMail(mailOptions);
-    try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent:", info.response);
-    } catch (err) {
-      console.error("Email sending error:", err);
-    }
 
     return res.status(200).json({
       id: user._id,
@@ -394,7 +343,7 @@ app.post('/api/leaderboard', async (req, res) => {
   try {
     const { _id, jwtToken } = req.body || {};
 
-    var token = require('./createJWT.js');
+    const token = createJWT;
     try
     {
       if( token.isExpired(jwtToken))
@@ -462,7 +411,7 @@ app.get('/api/user/:id', async (req, res) => {
     const { id, jwtToken } = req.params;
     if (!id) return res.status(400).json({ error: 'Missing id' });
 
-    var token = require('./createJWT.js');
+    const token = createJWT;
     try
     {
       if( token.isExpired(jwtToken))
@@ -509,7 +458,6 @@ app.get('/api/user/:id', async (req, res) => {
       quizzesTaken: user.quizzesTaken || 0,
       currentDaysPoints: user.currentDaysPoints || 0,
       dailyQuizCompleted: user.dailyQuizCompleted || false,
-      favoriteSign: user.favoriteSign || 'Pisces',
       rank,
       jwtToken: refreshedToken
     });
