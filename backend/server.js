@@ -182,6 +182,51 @@ app.post("/api/register", async (req, res) => {
       currentDaysPoints: 0,
     });
 
+    // Create email verification token and send verification email (best-effort)
+    try {
+      const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET;
+      if (secret) {
+        const verificationToken = jwt.sign({ email }, secret, { expiresIn: '1d' });
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const verifyLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
+
+        // Configure transporter if credentials are provided
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+          const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+              user: process.env.EMAIL_USER,
+              pass: process.env.EMAIL_PASS,
+            },
+          });
+
+          const mailOptions = {
+            from: `"AstroQuizzer" <${process.env.EMAIL_USER}>`,
+            to: email,
+            subject: 'Verify your AstroQuizzer email',
+            html: `
+              <p>Hi ${firstName},</p>
+              <p>Thanks for creating an AstroQuizzer account. Please verify your email by clicking the link below:</p>
+              <p><a href="${verifyLink}">Verify email</a></p>
+              <p>This link expires in 24 hours.</p>
+            `,
+          };
+
+          transporter.sendMail(mailOptions).then(info => {
+            console.log('Verification email sent:', info.response);
+          }).catch(err => {
+            console.error('Verification email error:', err.message || err);
+          });
+        } else {
+          console.warn('EMAIL_USER or EMAIL_PASS not set — skipping verification email send');
+        }
+      } else {
+        console.warn('No ACCESS_TOKEN_SECRET/JWT_SECRET configured — skipping verification token generation');
+      }
+    } catch (emailErr) {
+      console.error('Error while attempting to send verification email:', emailErr.message || emailErr);
+    }
+
     return res.status(200).json({
       id: user._id,
       username: user.username,
