@@ -316,7 +316,14 @@ app.post("/api/login", async (req, res) => {
     //{
     //  ret = {error:e.message};
     //}
-    return res.status(200).json(user.firstName, user.lastName, user._id)
+    // Return an object with the user's id and basic profile information so
+    // clients (web and mobile) can parse the JSON consistently.
+    return res.status(200).json({
+      id: user._id,
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName
+    });
     //return res.status(200).json(ret);
 
   } catch (err) {

@@ -263,9 +263,15 @@ class _SignupPageState extends State<SignupPage> {
       print('doSignup: status=${res.statusCode}, body=${res.body}');
       final j = jsonDecode(res.body);
       if (res.statusCode == 200 && j['id'] != null) {
-        widget.onSignup(j['id']);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account created')));
-        Navigator.of(context).pop();
+        // Don't auto-login the user after signup. Return to the login screen
+        // and show a clear message so they know to check their email.
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        // Use the navigatorKey's context to ensure the SnackBar is shown on
+        // the root scaffold (the LoginPage).
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) {
+          ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Account created. Check your email to verify your account.')));
+        }
       } else {
         final msg = j['error'] ?? 'Signup failed';
         setState(() { error = msg; });
@@ -316,6 +322,53 @@ class _SignupPageState extends State<SignupPage> {
                         ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) 
                         : const Text('Create account', style: TextStyle(color: Colors.white)))),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class CheckEmailPage extends StatelessWidget {
+  final String email;
+  const CheckEmailPage({required this.email, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(title: const Text('Verify your email')),
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          width: 420,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.email, size: 64, color: Color(0xFF0EA5A3)),
+              const SizedBox(height: 12),
+              const Text('Check your email', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textPrimary)),
+              const SizedBox(height: 8),
+              Text('We sent a verification link to the email address below. Please open that link to verify your account before signing in.', style: TextStyle(color: textMuted), textAlign: TextAlign.center),
+              const SizedBox(height: 12),
+              Text(email, style: const TextStyle(color: textPrimary, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Return to the login screen (pop back to the first route)
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryButton,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Back to Sign in', style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
