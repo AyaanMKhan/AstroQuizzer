@@ -18,7 +18,7 @@ const Color primaryButton = Color(0xFF2563EB); // #2563eb
 // API Base URL
 // Use '127.0.0.1' for macOS/iOS (more reliable than localhost)
 // Use '10.0.2.2' for Android emulator
-const String apiBaseUrl = 'http://127.0.0.1:5001';
+const String apiBaseUrl = 'http://10.0.2.2:5001';
 
 final GlobalKey<AuthGateState> authGateKey = GlobalKey<AuthGateState>();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();

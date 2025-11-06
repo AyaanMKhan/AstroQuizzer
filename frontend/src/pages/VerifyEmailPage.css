@@ -1,0 +1,30 @@
+body { margin: 0; }
+.verify-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 80vh;
+  background: linear-gradient(180deg, #071024 0%, #00121a 100%);
+  color: #e6eef8;
+}
+.verify-card {
+  background: #071427;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  max-width: 520px;
+  width: 100%;
+  text-align: center;
+}
+.verify-card h2 { margin: 0 0 1rem; }
+.verify-card p { margin-bottom: 1.25rem; color: #bcd2ea; }
+.btn {
+  background: #0ea5a3;
+  color: #002029;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn:hover { opacity: 0.95 }

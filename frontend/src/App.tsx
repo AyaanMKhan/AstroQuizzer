@@ -6,6 +6,7 @@ import CreateAccountPage from './pages/CreateAccountPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
 import ApodPage from './pages/ApodPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 export default function App() {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/apod" element={<ApodPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
       </Routes>
     </div>
   );

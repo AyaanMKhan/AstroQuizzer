@@ -250,8 +250,11 @@ app.get("/api/verify-email", async (req, res) => {
     if (!token) return res.status(400).json({ error: "Missing token" });
 
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const { email } = decoded;
+      const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET;
+      if (!secret) return res.status(500).json({ error: 'Server token secret not configured' });
+
+      const decoded = jwt.verify(String(token), secret);
+      const { email } = decoded;
 
 
     const user = await User.findOne({ email });
