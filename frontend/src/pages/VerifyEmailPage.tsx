@@ -21,7 +21,7 @@ export default function VerifyEmailPage() {
       setStatus('loading');
       try {
         const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
-  const res = await fetch(`${API_BASE}/api/verify-email?token=${encodeURIComponent(String(token))}`);
+        const res = await fetch(`${API_BASE}/api/verify-email?token=${encodeURIComponent(String(token))}`);
         const data = await res.json();
         if (!res.ok || data.error) {
           setStatus('error');
