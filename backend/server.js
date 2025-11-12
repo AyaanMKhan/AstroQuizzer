@@ -16,6 +16,10 @@ import * as createJWT from './createJWT.js';
 
 dotenv.config();
 
+import { Resend } from "resend";
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+
 const app = express();
 const PORT = process.env.PORT || 5001;
 const MONGO_URI = process.env.MONGO_DB_STRING || process.env.mongo_db_string;
@@ -187,21 +191,16 @@ app.post("/api/register", async (req, res) => {
       const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET;
       if (secret) {
         const verificationToken = jwt.sign({ email }, secret, { expiresIn: '1d' });
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5001';
         const verifyLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
         // Configure transporter if credentials are provided
-        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-          const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-              user: process.env.EMAIL_USER,
-              pass: process.env.EMAIL_PASS,
-            },
-          });
+        if (process.env.RESEND_API_KEY) {
+          //const { Resend } = require('resend'); // or import { Resend } from 'resend' if using ESM
+          //const resend = new Resend(process.env.RESEND_API_KEY);
 
-          const mailOptions = {
-            from: `"AstroQuizzer" <${process.env.EMAIL_USER}>`,
+          await resend.emails.send({
+            from: 'AstroQuizzer <noreply@astroquizzer.xyz>',
             to: email,
             subject: 'Verify your AstroQuizzer email',
             html: `
@@ -210,15 +209,11 @@ app.post("/api/register", async (req, res) => {
               <p><a href="${verifyLink}">Verify email</a></p>
               <p>This link expires in 24 hours.</p>
             `,
-          };
-
-          transporter.sendMail(mailOptions).then(info => {
-            console.log('Verification email sent:', info.response);
-          }).catch(err => {
-            console.error('Verification email error:', err.message || err);
           });
+
+          console.log(`✅ Verification email sent via Resend to ${email}`);
         } else {
-          console.warn('EMAIL_USER or EMAIL_PASS not set — skipping verification email send');
+          console.warn('RESEND_API_KEY not set — skipping verification email send');
         }
       } else {
         console.warn('No ACCESS_TOKEN_SECRET/JWT_SECRET configured — skipping verification token generation');
@@ -338,6 +333,47 @@ app.post("/api/forgot-password", async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "No account found with that email" });
 
+    // Create a short-lived reset token
+    const resetToken = jwt.sign(
+      { email },
+      process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5001";
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn("RESEND_API_KEY not set — skipping password reset email send");
+      return res.status(500).json({ error: "Email service not configured" });
+    }
+
+    // Send email via Resend
+    await resend.emails.send({
+      from: "AstroQuizzer <noreply@astroquizzer.xyz>",
+      to: email,
+      subject: "Reset Your Password",
+      html: `
+        <h3>Password Reset Request</h3>
+        <p>Click the link below to reset your password (valid for 15 minutes):</p>
+        <a href="${resetLink}" target="_blank">${resetLink}</a>
+      `,
+    });
+
+    console.log(`✅ Password reset email sent via Resend to ${email}`);
+    return res.status(200).json({ message: "Password reset email sent" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+/*app.post("/api/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: "No account found with that email" });
+
     const resetToken = jwt.sign(
       { email },
       process.env.ACCESS_TOKEN_SECRET,
@@ -371,7 +407,7 @@ app.post("/api/forgot-password", async (req, res) => {
     console.error("Forgot password error:", err);
     res.status(500).json({ error: "Server error" });
   }
-});
+});*/
 
 app.post("/api/reset-password", async (req, res) => {
   try {
