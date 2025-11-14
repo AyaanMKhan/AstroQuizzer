@@ -35,6 +35,14 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
         setError(data.error || 'Login failed');
         return;
       }
+      //new
+      const token = data.token;
+      if (!token) {
+        setError('No token received from server');
+        return;
+      }
+
+      /*
       try {
         localStorage.setItem('aq_user', JSON.stringify({
           id: data.id,
@@ -43,6 +51,21 @@ export default function LoginPage({ onSignUpClick, onForgotPasswordClick }: Logi
           lastName: data.lastName || ''
         }));
       } catch {}
+       */
+      try {
+        localStorage.setItem('aq_token', token);
+        localStorage.setItem(
+          'aq_user',
+          JSON.stringify({
+            id: data.id || data.userId || data.user?._id,
+            email,
+            firstName: data.firstName || data.user?.firstName || '',
+            lastName: data.lastName || data.user?.lastName || '',
+          })
+        );
+      } catch (e) {
+        console.error('LocalStorage error:', e);
+      }
       navigate('/home');
     } catch (err) {
       setError('Network error. Please try again.');

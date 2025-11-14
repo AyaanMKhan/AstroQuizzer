@@ -302,23 +302,36 @@ app.post("/api/login", async (req, res) => {
     if(!user.verified) return res.status(400).json({error: "Email unverified"});
 
     //json token stuff
-    //try
-    //{
-    //  const token = require("./createJWT.js");
-    //  ret = token.createToken( user.firstName, user.lastName, user._id);
-    //}
-    //catch(e)
-    //{
-    //  ret = {error:e.message};
-    //}
+    try
+    {
+      //const token = require("./createJWT.js");
+      const ret = createJWT.createToken(user.firstName, user.lastName, user._id);
+      //console.log("✅ LOGIN RESPONSE OBJECT:", ret);
+      return res.status(200).json({
+        token: ret.accessToken,      
+        id: user._id,                
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      });
+      //return res.status(200).json(ret);
+      //ret = token.createToken( user.firstName, user.lastName, user._id);
+    }
+    catch(e)
+    {
+      console.error("💥 ERROR IN TOKEN CREATION:", e);
+      return res.status(500).json({ error: e.message });
+    }
     // Return an object with the user's id and basic profile information so
     // clients (web and mobile) can parse the JSON consistently.
+    /*
     return res.status(200).json({
       id: user._id,
       username: user.username,
       firstName: user.firstName,
       lastName: user.lastName
     });
+    */
     //return res.status(200).json(ret);
 
   } catch (err) {
@@ -367,47 +380,6 @@ app.post("/api/forgot-password", async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
-
-/*app.post("/api/forgot-password", async (req, res) => {
-  try {
-    const { email } = req.body;
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ error: "No account found with that email" });
-
-    const resetToken = jwt.sign(
-      { email },
-      process.env.ACCESS_TOKEN_SECRET,
-      { expiresIn: "15m" }
-    );
-
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    const mailOptions = {
-      from: `"AstroQuizzer" <${process.env.EMAIL_USER}>`,
-      to: email,
-      subject: "Reset Your Password",
-      html: `
-        <h3>Password Reset Request</h3>
-        <p>Click the link below to reset your password (valid for 15 minutes):</p>
-        <a href="${resetLink}" target="_blank">${resetLink}</a>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    return res.status(200).json({ message: "Password reset email sent" });
-  } catch (err) {
-    console.error("Forgot password error:", err);
-    res.status(500).json({ error: "Server error" });
-  }
-});*/
 
 app.post("/api/reset-password", async (req, res) => {
   try {
@@ -499,7 +471,10 @@ app.post('/api/leaderboard', async (req, res) => {
 // Get User Profile
 app.get('/api/user/:id', async (req, res) => {
   try {
-    const { id, jwtToken } = req.params;
+    //const { id, jwtToken } = req.params;
+    const { id } = req.params;
+    const { jwtToken } = req.query;
+
     if (!id) return res.status(400).json({ error: 'Missing id' });
 
     const token = createJWT;

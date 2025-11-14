@@ -32,7 +32,15 @@ export default function LeaderboardPage() {
       try {
         const stored = localStorage.getItem('aq_user');
         const parsed = stored ? JSON.parse(stored) : null;
-        const body = parsed?.id ? { _id: parsed.id } : {};
+        //const body = parsed?.id ? { _id: parsed.id } : {};
+
+        const storedToken = localStorage.getItem('aq_token');
+
+        const body = {
+          _id: parsed?.id,
+          jwtToken: storedToken
+        };
+
         const res = await fetch(`${API_BASE}/api/leaderboard`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -62,7 +70,7 @@ export default function LeaderboardPage() {
           <div className="btns">
             <button className="btn apod" onClick={() => navigate('/apod')}>Today's Picture</button>
             <button className="btn leaderboard active">Leaderboard</button>
-            <button className="btn profile" onClick={() => navigate('/profile')}>Profile</button>
+            <button className="btn profile" onClick={() => navigate(isLoggedIn ? '/profile' : '/login')}>Profile</button>
             {isLoggedIn ? (
               <button
                 className="btn sign-in"

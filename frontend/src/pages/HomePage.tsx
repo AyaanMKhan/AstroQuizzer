@@ -21,7 +21,7 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
           <div className="btns">
             {onApodClick && <button className="btn apod" onClick={onApodClick}>Today's Picture</button>}
             <button className="btn leaderboard" onClick={onLeaderboardClick}>Leaderboard</button>
-            <button className="btn profile" onClick={onProfileClick}>Profile</button>
+            <button className="btn profile" onClick={(isLoggedIn ? onProfileClick : () => navigate('/login'))}>Profile</button>
             {isLoggedIn ? (
               <button
                 className="btn sign-in"
@@ -55,7 +55,7 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
           <div className="feature-card right">
             <h3>Profile</h3>
             <p>Track your progress and view your achievements</p>
-            <button className="feature-btn" onClick={onProfileClick}>View Profile</button>
+            <button className="feature-btn" onClick={(isLoggedIn ? onProfileClick : () => navigate('/login'))}>View Profile</button>
           </div>
         </div>
       </div>
