@@ -58,7 +58,7 @@ export default function ApodPage() {
           <div className="btns">
             <button className="btn apod active">Today's Picture</button>
             <button className="btn leaderboard" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
-            <button className="btn profile" onClick={() => navigate('/profile')}>Profile</button>
+            <button className="btn profile" onClick={() => navigate(isLoggedIn ? '/profile' : '/login')}>Profile</button>
             {isLoggedIn ? (
               <button
                 className="btn sign-in"
