@@ -572,11 +572,22 @@ app.put('/api/user/:id/username', async (req, res) => {
 // Get Today's Quiz Questions
 app.get('/api/questions/today', async (req, res) => {
   try {
+    const { jwtToken } = req.query;
+    const token = createJWT;
+
+    try {
+      if (!jwtToken || token.isExpired(jwtToken)) {
+        return res.status(200).json({ error: 'The JWT is no longer valid', jwtToken: '' });
+      }
+    } catch (e) {
+      console.log('JWT check error:', e.message);
+    }
+
     // Get today's date (matching APOD logic)
     const now = new Date();
     const year = 2024; // Match APOD fetch logic
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    const day = String('03'); //String(now.getDate()).padStart(2, '0');   //hardcoded atm to be the day = 03 because that's the only question we have rn
     const date = `${year}-${month}-${day}`;
 
     const questionDoc = await Question.findOne({ date }).lean();
@@ -596,9 +607,20 @@ app.get('/api/questions/today', async (req, res) => {
       points: q.points
     }));
 
+    var refreshedToken = null;
+    try
+    {
+      refreshedToken = token.refresh(jwtToken);
+    }
+    catch(e)
+    {
+      console.log(e.message);
+    }
+
     return res.status(200).json({
       date: questionDoc.date,
-      questions: questionsForClient
+      questions: questionsForClient,
+      jwtToken: refreshedToken
     });
   } catch (err) {
     console.error("❌ Questions route error:", err.message);
@@ -609,7 +631,22 @@ app.get('/api/questions/today', async (req, res) => {
 // Submit Quiz Answers
 app.post('/api/quiz/submit', async (req, res) => {
   try {
-    const { userId, answers } = req.body || {};
+    const { userId, answers, jwtToken } = req.body || {};
+
+    const token = createJWT;
+    try
+    {
+      if( token.isExpired(jwtToken))
+      {
+        var r = {error:'The JWT is no longer valid', jwtToken: ''};
+        res.status(200).json(r);
+        return;
+      }
+    }
+    catch(e)
+    {
+      console.log(e.message);
+    }
     
     if (!userId || !answers || !Array.isArray(answers) || answers.length !== 5) {
       return res.status(400).json({ error: 'Missing userId or invalid answers array (must be 5 answers)' });
@@ -619,7 +656,7 @@ app.post('/api/quiz/submit', async (req, res) => {
     const now = new Date();
     const year = 2024;
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
+    const day = String('03'); //String(now.getDate()).padStart(2, '0');   //hardcoded atm to be the day = 03 because that's the only question we have rn
     const date = `${year}-${month}-${day}`;
 
     // Get user
@@ -672,13 +709,24 @@ app.post('/api/quiz/submit', async (req, res) => {
     user.quizzesTaken = (user.quizzesTaken || 0) + 1;
     await user.save();
 
+    var refreshedToken = null;
+    try
+    {
+      refreshedToken = token.refresh(jwtToken);
+    }
+    catch(e)
+    {
+      console.log(e.message);
+    }
+
     return res.status(200).json({
       success: true,
       score,
       totalScore: user.totalScore,
       currentDaysPoints: user.currentDaysPoints,
       results,
-      message: 'Quiz submitted successfully'
+      message: 'Quiz submitted successfully',
+      jwtToken: refreshedToken
     });
   } catch (err) {
     console.error('❌ Quiz submission error:', err.message);

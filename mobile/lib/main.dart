@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'starfield.dart';
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +19,8 @@ const Color primaryButton = Color(0xFF2563EB); // #2563eb
 // API Base URL
 // Use '127.0.0.1' for macOS/iOS (more reliable than localhost)
 // Use '10.0.2.2' for Android emulator
-const String apiBaseUrl = 'http://10.0.2.2:5001';
+//const String apiBaseUrl = 'http://10.0.2.2:5001';
+const String apiBaseUrl = 'http://localhost:5001';
 
 final GlobalKey<AuthGateState> authGateKey = GlobalKey<AuthGateState>();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -103,6 +105,7 @@ class _LoginPageState extends State<LoginPage> {
   final _passCtrl = TextEditingController();
   String error = '';
   bool loading = false;
+  final _storage = const FlutterSecureStorage();
 
   Future<void> doLogin() async {
     if (_userCtrl.text.trim().isEmpty || _passCtrl.text.isEmpty) {
@@ -128,6 +131,12 @@ class _LoginPageState extends State<LoginPage> {
       print('doLogin: status=${res.statusCode}, body=${res.body}');
       final j = jsonDecode(res.body);
       if (res.statusCode == 200 && j['id'] != null) {
+        // ✨ NEW: Store the JWT token
+        if (j['token'] != null) {
+          await _storage.write(key: 'jwt_token', value: j['token']);
+          print('✅ JWT token stored');
+        }
+        
         widget.onLogin(j['id']);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Signed in')));
       } else {
@@ -430,6 +439,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   Map<String, dynamic>? currentUserInfo;
   String? error;
   bool loading = true;
+  final _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -443,11 +453,23 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       error = null;
     });
     try {
+      final token = await _storage.read(key: 'jwt_token');
+
       final res = await http.post(Uri.parse('$apiBaseUrl/api/leaderboard'),
           headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({'_id': widget.userId}));
+          body: jsonEncode({
+            '_id': widget.userId,
+            'jwtToken': token,
+          }));
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
+        if (j['jwtToken'] != null) {
+          final tokenString = j['jwtToken']['accessToken'] as String?;
+          if (tokenString != null) {
+            await _storage.write(key: 'jwt_token', value: tokenString);
+            print('📱 Leaderboard: token refreshed');
+          }
+        }
         setState(() {
           top = j['topHundred'] ?? [];
           currentUserInfo = j['user'];
@@ -457,7 +479,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           error = j['error'] ?? 'Failed';
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('📱 Leaderboard exception: $e');
+      print('Stack: $stackTrace');
       setState(() {
         error = 'Network';
       });
@@ -560,6 +584,7 @@ class _QuizPageState extends State<QuizPage> {
   bool loadingQuestions = true;
   bool submitting = false;
   Map<String, dynamic>? userProfile;
+  final _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -569,9 +594,22 @@ class _QuizPageState extends State<QuizPage> {
 
   Future<void> checkUserStatus() async {
     try {
-      final res = await http.get(Uri.parse('$apiBaseUrl/api/user/${widget.userId}'));
+      final token = await _storage.read(key: 'jwt_token');
+      final uri = Uri.parse('$apiBaseUrl/api/user/${widget.userId}').replace(
+        queryParameters: token != null ? {'jwtToken': token} : null,
+      );
+      
+      final res = await http.get(uri);
+      //final res = await http.get(Uri.parse('$apiBaseUrl/api/user/${widget.userId}'));
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
+        if (j['jwtToken'] != null) {
+          final tokenString = j['jwtToken']['accessToken'] as String?;
+          if (tokenString != null) {
+            await _storage.write(key: 'jwt_token', value: tokenString);
+            print('📱 CheckUserStatus: token refreshed');
+          }
+        }
         setState(() {
           userProfile = j;
         });
@@ -606,14 +644,33 @@ class _QuizPageState extends State<QuizPage> {
       error = null;
     });
     try {
-      final res = await http.get(Uri.parse('$apiBaseUrl/api/questions/today'));
+      print('📱 FetchQuestions: START');
+      final token = await _storage.read(key: 'jwt_token');
+      print('📱 FetchQuestions: token = $token'); //DEBUG
+      final uri = Uri.parse('$apiBaseUrl/api/questions/today').replace(
+        queryParameters: token != null ? {'jwtToken': token} : null,
+      );
+      print('📱 FetchQuestions: calling URL: $uri');
+      
+      final res = await http.get(uri);
+      print('📱 FetchQuestions: status=${res.statusCode}, body=${res.body}');
+      //final res = await http.get(Uri.parse('$apiBaseUrl/api/questions/today'));
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
+        if (j['jwtToken'] != null) {
+          final tokenString = j['jwtToken']['accessToken'] as String?;
+          if (tokenString != null) {
+            await _storage.write(key: 'jwt_token', value: tokenString);
+            print('📱 FetchQuestions: token refreshed');
+          }
+        }
         setState(() {
           questions = j['questions'] ?? [];
           loadingQuestions = false;
         });
+        print('📱 FetchQuestions: loaded ${questions.length} questions');
       } else {
+        print('📱 FetchQuestions: error - ${j['error']}');
         setState(() {
           error = j['error'] ?? 'Failed to load questions';
           loadingQuestions = false;
@@ -650,17 +707,28 @@ class _QuizPageState extends State<QuizPage> {
     });
 
     try {
+      final token = await _storage.read(key: 'jwt_token');
+
       final res = await http.post(
         Uri.parse('$apiBaseUrl/api/quiz/submit'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userId': widget.userId,
-          'answers': answers
+          'answers': answers,
+          'jwtToken': token,
         })
       );
 
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
+        if (j['jwtToken'] != null) {
+          final tokenString = j['jwtToken']['accessToken'] as String?;
+          if (tokenString != null) {
+            await _storage.write(key: 'jwt_token', value: tokenString);
+            print('📱 SubmitQuiz: token refreshed');
+          }
+        }
+
         // Show loading while updating total score (simulated delay)
         await Future.delayed(const Duration(milliseconds: 500));
 
@@ -1041,6 +1109,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Map<String, dynamic>? profile;
   String? error;
   bool loading = true;
+  final _storage = const FlutterSecureStorage();
 
   @override
   void initState() {
@@ -1054,9 +1123,22 @@ class _ProfilePageState extends State<ProfilePage> {
       error = null;
     });
     try {
-      final res = await http.get(Uri.parse('$apiBaseUrl/api/user/${widget.userId}'));
+      final token = await _storage.read(key: 'jwt_token');
+      final uri = Uri.parse('$apiBaseUrl/api/user/${widget.userId}').replace(
+        queryParameters: token != null ? {'jwtToken': token} : null,
+      );
+      
+      final res = await http.get(uri);
+      //final res = await http.get(Uri.parse('$apiBaseUrl/api/user/${widget.userId}'));
       final j = jsonDecode(res.body);
       if (res.statusCode == 200) {
+        if (j['jwtToken'] != null) {
+          final tokenString = j['jwtToken']['accessToken'] as String?;
+          if (tokenString != null) {
+            await _storage.write(key: 'jwt_token', value: tokenString);
+            print('📱 Profile: token refreshed');
+          }
+        }
         setState(() {
           profile = j;
         });
