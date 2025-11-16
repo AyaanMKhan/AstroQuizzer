@@ -16,10 +16,26 @@ export default function ResetPasswordPage() {
 
   useEffect(() => {
     const tokenFromUrl = searchParams.get('token');
+    console.log('ResetPasswordPage: Token from URL:', tokenFromUrl);
+    console.log('ResetPasswordPage: All search params:', Object.fromEntries(searchParams));
     if (tokenFromUrl) {
       setToken(tokenFromUrl);
     } else {
-      setError('No reset token found in URL');
+      // Try to get token from path if it's in the format /reset-password/passwordtoken-...
+      const pathname = window.location.pathname;
+      console.log('ResetPasswordPage: Pathname:', pathname);
+      if (pathname.includes('passwordtoken-')) {
+        const tokenMatch = pathname.match(/passwordtoken-(.+)/);
+        if (tokenMatch && tokenMatch[1]) {
+          const extractedToken = tokenMatch[1];
+          console.log('ResetPasswordPage: Extracted token from path:', extractedToken);
+          setToken(extractedToken);
+        } else {
+          setError('Invalid reset link format');
+        }
+      } else {
+        setError('No reset token found in URL');
+      }
     }
   }, [searchParams]);
 
@@ -79,9 +95,12 @@ export default function ResetPasswordPage() {
     }
   }
 
+  console.log('ResetPasswordPage: Rendering, token:', token ? 'present' : 'missing', 'error:', error);
+  console.log('ResetPasswordPage: Full URL:', window.location.href);
+
   return (
-    <div className="overlay">
-      <div className="modal">
+    <div className="overlay" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div className="modal" style={{ minHeight: '300px' }}>
         <div className="content">
           {success ? (
             <div className="success-message">
@@ -101,7 +120,7 @@ export default function ResetPasswordPage() {
                 className="input"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                disabled={loading || !token}
+                disabled={loading}
               />
 
               <input
@@ -110,10 +129,16 @@ export default function ResetPasswordPage() {
                 className="input"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                disabled={loading || !token}
+                disabled={loading}
               />
 
               {error && <div className="error-message">{error}</div>}
+
+              {!token && !error && (
+                <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: '1rem' }}>
+                  Loading reset token...
+                </div>
+              )}
 
               <button type="submit" className="btn" disabled={loading || !token}>
                 {loading ? 'Resetting...' : 'Reset Password'}
