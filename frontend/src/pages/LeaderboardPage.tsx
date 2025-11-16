@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './LeaderboardPage.css';
 
 type LeaderboardRow = {
-  _id?: string;
   rank: number;
   username: string;
   totalScore: number;
@@ -23,7 +22,7 @@ export default function LeaderboardPage() {
   const [error, setError] = useState('');
   const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('aq_user');
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+  const API_BASE = 'http://localhost:5001';
 
   useEffect(() => {
     async function load() {
@@ -32,15 +31,7 @@ export default function LeaderboardPage() {
       try {
         const stored = localStorage.getItem('aq_user');
         const parsed = stored ? JSON.parse(stored) : null;
-        //const body = parsed?.id ? { _id: parsed.id } : {};
-
-        const storedToken = localStorage.getItem('aq_token');
-
-        const body = {
-          _id: parsed?.id,
-          jwtToken: storedToken
-        };
-
+        const body = parsed?.id ? { _id: parsed.id } : {};
         const res = await fetch(`${API_BASE}/api/leaderboard`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -68,9 +59,8 @@ export default function LeaderboardPage() {
         <div className="nav">
           <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
-            <button className="btn apod" onClick={() => navigate('/apod')}>Today's Picture</button>
             <button className="btn leaderboard active">Leaderboard</button>
-            <button className="btn profile" onClick={() => navigate(isLoggedIn ? '/profile' : '/login')}>Profile</button>
+            <button className="btn profile" onClick={() => navigate('/profile')}>Profile</button>
             {isLoggedIn ? (
               <button
                 className="btn sign-in"
@@ -90,33 +80,43 @@ export default function LeaderboardPage() {
       <div className="content">
         <h1>Leaderboard</h1>
 
+        {currentUser && (
+          <div className="card" style={{ marginBottom: 16 }}>
+            <div className="header">
+              <div className="avatar">{currentUser.username.slice(0,2).toUpperCase()}</div>
+              <h2>{currentUser.username}</h2>
+            </div>
+            <div className="stats">
+              <div className="stat">
+                <div className="val">#{currentUser.rank}</div>
+                <div className="lbl">Rank</div>
+              </div>
+              <div className="stat">
+                <div className="val">{currentUser.score}</div>
+                <div className="lbl">Score</div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {error && <div style={{ color: '#e33', marginBottom: 12 }}>{error}</div>}
         {loading ? (
           <div>Loading...</div>
         ) : (
-          <div className="table">
-            <div className="table-header">
-              <span className="col">Rank</span>
-              <span className="col">Player</span>
-              <span className="col">Score</span>
-            </div>
-            {rows.map((player) => {
-              const isCurrentUser = currentUser && currentUser.username === player.username;
-              const medal = player.rank === 1 ? '🥇' : player.rank === 2 ? '🥈' : player.rank === 3 ? '🥉' : null;
-              return (
-                <div 
-                  key={player.rank} 
-                  className={`row ${isCurrentUser ? 'highlight' : ''}`}
-                >
-                  <span className="col rank-col">
-                    {medal ? <span className="medal">{medal}</span> : player.rank}
-                  </span>
-                  <span className="col">{player.username}</span>
-                  <span className="col">{player.totalScore}</span>
-                </div>
-              );
-            })}
+        <div className="table">
+          <div className="header">
+            <span className="col">Rank</span>
+            <span className="col">Player</span>
+            <span className="col">Score</span>
           </div>
+            {rows.map((player) => (
+            <div key={player.rank} className="row">
+              <span className="col">{player.rank}</span>
+                <span className="col">{player.username}</span>
+                <span className="col">{player.totalScore}</span>
+            </div>
+          ))}
+        </div>
         )}
       </div>
     </div>

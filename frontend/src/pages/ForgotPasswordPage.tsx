@@ -1,78 +1,91 @@
-import './ForgotPasswordPage.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './ForgotPasswordPage.css';
 
-interface CreateAccountPageProps {
-  onForgotPasswordClick: () => void;
-}
-
-export default function ForgotPasswordPage({ onForgotPasswordClick }: CreateAccountPageProps) {
+export default function ForgotPasswordPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
-  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+  const API_BASE = 'http://localhost:5001';
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    setSuccess(false);
+
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setLoading(true);
     try {
       const res = await fetch(`${API_BASE}/api/forgot-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email })
       });
       const data = await res.json();
       if (!res.ok || data.error) {
         setError(data.error || 'Failed to send reset link');
+        return;
       }
-      // Success: route to login
-      navigate('/login');
-    } catch (err: any) {
+      setSuccess(true);
+      // In development, show the reset link
+      if (data.resetLink) {
+        console.log('Reset link:', data.resetLink);
+      }
+    } catch (err) {
       setError('Network error. Please try again.');
     } finally {
       setLoading(false);
     }
   }
 
-//export default function ForgotPasswordPage() {
   return (
     <div className="overlay">
       <div className="modal">
         <div className="tabs">
-          <div className="tab" onClick={onForgotPasswordClick}>
+          <div className="tab" onClick={() => navigate('/login')}>
             Sign in
           </div>
-          <div className="tab">
+          <div className="tab" onClick={() => navigate('/signup')}>
             Sign up
           </div>
         </div>
         
         <div className="content">
-          <form className="form fade-in" onSubmit={handleSubmit}>
-            <div className="text">
-              <h2>Forgot Password</h2>
+          <div className="text">
+            <h2>Forgot Password</h2>
+            {success ? (
+              <p style={{ color: '#4ade80' }}>If that email exists, a reset link has been sent. Please check your email.</p>
+            ) : (
               <p>Enter your email address and we'll send you a link to reset your password.</p>
-            </div>
-
-            <input
-              type="email"
-              placeholder="Email"
-              className="input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-
-            {error && <div style={{ color: '#e33', marginTop: 8 }}>{error}</div>}
-
-            <button type="submit" className="btn" disabled={loading}>
-              {loading ? 'Sending...' : 'Send Reset Link'}
-            </button>
-          </form>
+            )}
+          </div>
+          
+          {error && <div style={{ color: '#e33', marginBottom: 12 }}>{error}</div>}
+          
+          {!success && (
+            <form className="form" onSubmit={handleSubmit}>
+              <input 
+                type="email" 
+                placeholder="Email" 
+                className="input" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <button type="submit" className="btn" disabled={loading}>
+                {loading ? 'Sending...' : 'Send Reset Link'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
