@@ -39,7 +39,6 @@ export default function App() {
         <Route path="/signup" element={<CreateAccountPage onSignInClick={() => navigate('/login')} />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage onForgotPasswordClick={() => navigate('/login')}/>} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/reset-password/*" element={<ResetPasswordPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/apod" element={<ApodPage />} />
