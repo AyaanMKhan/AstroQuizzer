@@ -103,20 +103,20 @@ export default function LeaderboardPage() {
         {loading ? (
           <div>Loading...</div>
         ) : (
-          <div className="table">
-            <div className="header">
-              <span className="col">Rank</span>
-              <span className="col">Player</span>
-              <span className="col">Score</span>
-            </div>
+        <div className="table">
+          <div className="header">
+            <span className="col">Rank</span>
+            <span className="col">Player</span>
+            <span className="col">Score</span>
+          </div>
             {rows.map((player) => (
-              <div key={player.rank} className="row">
-                <span className="col">{player.rank}</span>
+            <div key={player.rank} className="row">
+              <span className="col">{player.rank}</span>
                 <span className="col">{player.username}</span>
                 <span className="col">{player.totalScore}</span>
-              </div>
-            ))}
-          </div>
+            </div>
+          ))}
+        </div>
         )}
       </div>
     </div>

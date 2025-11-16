@@ -83,42 +83,42 @@ export default function ProfilePage() {
         {loading ? (
           <div>Loading...</div>
         ) : (
-          <div className="card">
-            <div className="header">
+        <div className="card">
+          <div className="header">
               <div className="avatar">{initials}</div>
               <h2>{fullName}</h2>
-            </div>
-            
-            <div className="stats">
-              <div className="stat">
+          </div>
+          
+          <div className="stats">
+            <div className="stat">
                 <div className="val">{profile?.totalScore ?? 0}</div>
-                <div className="lbl">Total Score</div>
-              </div>
-              <div className="stat">
-                <div className="val">{profile?.quizzesTaken ?? 0}</div>
-                <div className="lbl">Quizzes Taken</div>
-              </div>
-              <div className="stat">
-                <div className="val">{profile?.rank ? `#${profile.rank}` : '-'}</div>
-                <div className="lbl">Rank</div>
-              </div>
+              <div className="lbl">Total Score</div>
             </div>
+            <div className="stat">
+                <div className="val">{profile?.quizzesTaken ?? 0}</div>
+              <div className="lbl">Quizzes Taken</div>
+            </div>
+            <div className="stat">
+                <div className="val">{profile?.rank ? `#${profile.rank}` : '-'}</div>
+              <div className="lbl">Rank</div>
+            </div>
+          </div>
 
-            <div className="section">
-              <h3>Account Settings</h3>
-              <div className="list">
-                <div className="item">
-                  <span>Username</span>
-                  <button className="edit">Edit</button>
-                </div>
-                <div className="item">
-                  <span>Password</span>
-                  <button className="edit">Change</button>
-                </div>
-                <div className="item">
-                  <span>Email</span>
-                  <button className="edit">Edit</button>
-                </div>
+          <div className="section">
+            <h3>Account Settings</h3>
+            <div className="list">
+              <div className="item">
+                <span>Username</span>
+                <button className="edit">Edit</button>
+              </div>
+              <div className="item">
+                <span>Password</span>
+                <button className="edit">Change</button>
+              </div>
+              <div className="item">
+                <span>Email</span>
+                <button className="edit">Edit</button>
+              </div>
               </div>
             </div>
           </div>

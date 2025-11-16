@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -48,7 +49,10 @@ const userSchema = new mongoose.Schema({
     ]
   },
   // for old plaintext passwords
-  password:     { type: String, select: false }
+  password:     { type: String, select: false },
+  // password reset
+  resetToken:   { type: String, select: false },
+  resetTokenExpiry: { type: Date, select: false }
 }, {timestamps: true});
 
 const User = mongoose.model("User", userSchema);
@@ -197,6 +201,104 @@ app.get('/api/user/:id', async (req, res) => {
     });
   } catch (err) {
     console.error('User profile error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Forgot Password - Generate reset token
+app.post('/api/forgot-password', async (req, res) => {
+  try {
+    const { email } = req.body || {};
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
+    if (!user) {
+      // Don't reveal if email exists for security
+      return res.status(200).json({ message: 'If that email exists, a reset link has been sent' });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+    user.resetToken = resetToken;
+    user.resetTokenExpiry = resetTokenExpiry;
+    await user.save();
+
+    // TODO: Send email with reset link
+    // For now, we'll return the token in development (remove in production)
+    const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, ''); // Remove trailing slash
+    const resetLink = `${frontendUrl}/reset-password/${resetToken}`;
+    console.log('Reset link:', resetLink); // Remove in production
+
+    return res.status(200).json({ 
+      message: 'If that email exists, a reset link has been sent',
+      // Remove this in production - only for development
+      resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined
+    });
+  } catch (err) {
+    console.error('Forgot password error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Reset Password - Verify token and reset password
+app.post('/api/reset-password', async (req, res) => {
+  try {
+    const { token, password } = req.body || {};
+    if (!token || !password) {
+      return res.status(400).json({ error: 'Token and password are required' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const user = await User.findOne({ 
+      resetToken: token,
+      resetTokenExpiry: { $gt: new Date() }
+    }).select('+resetToken +resetTokenExpiry');
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    // Hash new password
+    const rounds = parseInt(process.env.bcrypt_rounds || "12", 10);
+    user.passwordHash = await bcrypt.hash(password, rounds);
+    user.resetToken = undefined;
+    user.resetTokenExpiry = undefined;
+    await user.save();
+
+    return res.status(200).json({ message: 'Password reset successfully' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    return res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Verify reset token (for frontend to check if token is valid)
+app.get('/api/reset-password/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' });
+    }
+
+    const user = await User.findOne({ 
+      resetToken: token,
+      resetTokenExpiry: { $gt: new Date() }
+    }).select('+resetToken +resetTokenExpiry');
+
+    if (!user) {
+      return res.status(400).json({ error: 'Invalid or expired reset token' });
+    }
+
+    return res.status(200).json({ valid: true });
+  } catch (err) {
+    console.error('Verify reset token error:', err);
     return res.status(500).json({ error: 'Server error' });
   }
 });
