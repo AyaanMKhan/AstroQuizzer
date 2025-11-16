@@ -202,8 +202,9 @@ export default function ResetPasswordPage() {
               )}
 
               {!token && !error && (
-                <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: '1rem' }}>
-                  Loading reset token...
+                <div style={{ color: '#94a3b8', textAlign: 'center', marginTop: '1rem', padding: '1rem' }}>
+                  <p>Loading reset token...</p>
+                  <p style={{ fontSize: '0.85rem', marginTop: '0.5rem' }}>If you don't see a token, please check your email link.</p>
                 </div>
               )}
 
