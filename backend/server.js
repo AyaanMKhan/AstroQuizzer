@@ -384,18 +384,32 @@ app.post("/api/forgot-password", async (req, res) => {
 app.post("/api/reset-password", async (req, res) => {
   try {
     const { token, newPassword } = req.body;
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: "Token and new password are required" });
+    }
+
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET);
     const { email } = decoded;
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "Invalid token" });
 
-    user.password = newPassword;
+    // Hash the new password
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    user.passwordHash = passwordHash;
+    // Clear any old plaintext password
+    user.password = undefined;
     await user.save();
 
     res.status(200).json({ message: "Password reset successful!" });
   } catch (err) {
     console.error("Reset password error:", err);
+    if (err.name === 'TokenExpiredError') {
+      return res.status(400).json({ error: "Token has expired. Please request a new reset link." });
+    }
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(400).json({ error: "Invalid token" });
+    }
     res.status(400).json({ error: "Invalid or expired token" });
   }
 });
