@@ -191,7 +191,7 @@ app.post("/api/register", async (req, res) => {
       const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET;
       if (secret) {
         const verificationToken = jwt.sign({ email }, secret, { expiresIn: '1d' });
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5001';
+        const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5001').replace(/\/$/, ''); // Remove trailing slash
         const verifyLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
         // Configure transporter if credentials are provided
@@ -353,7 +353,7 @@ app.post("/api/forgot-password", async (req, res) => {
       { expiresIn: "15m" }
     );
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5001";
+    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5001").replace(/\/$/, ''); // Remove trailing slash
     const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
     if (!process.env.RESEND_API_KEY) {

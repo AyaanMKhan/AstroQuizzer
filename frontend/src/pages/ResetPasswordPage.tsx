@@ -116,7 +116,8 @@ export default function ResetPasswordPage() {
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
-      zIndex: 1000
+      zIndex: 1000,
+      minHeight: '100vh'
     }}>
       <div className="modal" style={{ 
         minHeight: '300px',
