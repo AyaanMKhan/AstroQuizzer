@@ -43,17 +43,17 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
         <p>Explore the cosmos with daily astronomy pictures and compete with fellow enthusiasts!</p>
         <div className="feature-grid">
           <div className="feature-card top">
-            <h3>Today's Picture</h3>
+            <h2>Today's Picture</h2>
             <p>Discover NASA's Astronomy Picture of the Day with detailed explanations and resources</p>
             {onApodClick && <button className="feature-btn" onClick={onApodClick}>View Picture</button>}
           </div>
           <div className="feature-card left">
-            <h3>Leaderboard</h3>
+            <h2>Leaderboard</h2>
             <p>See where you rank among fellow astronomy enthusiasts</p>
             <button className="feature-btn" onClick={onLeaderboardClick}>View Leaderboard</button>
           </div>
           <div className="feature-card right">
-            <h3>Profile</h3>
+            <h2>Profile</h2>
             <p>Track your progress and view your achievements</p>
             <button className="feature-btn" onClick={(isLoggedIn ? onProfileClick : () => navigate('/login'))}>View Profile</button>
           </div>
