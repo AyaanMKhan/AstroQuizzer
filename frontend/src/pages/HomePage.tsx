@@ -17,7 +17,7 @@ export default function HomePage({ onSignInClick, onSignUpClick, onLeaderboardCl
     <div>
       <nav className="navbar">
         <div className="nav">
-          <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
+          <button className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}>AstroQuizzer</button>
           <div className="btns">
             {onApodClick && <button className="btn apod" onClick={onApodClick}>Today's Picture</button>}
             <button className="btn leaderboard" onClick={onLeaderboardClick}>Leaderboard</button>
