@@ -23,6 +23,8 @@ export default function ProfilePage() {
 
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
+  const [deleting, setDeleting] = useState(false);
+
   useEffect(() => {
     async function load() {
       setError('');
@@ -119,6 +121,50 @@ export default function ProfilePage() {
               <div className="item">
                 <span>Email</span>
                 <button className="edit">Edit</button>
+              </div>
+              <div className="item">
+                <span style={{ color: '#ef4444' }}>Delete Account</span>
+                <button
+                  className="edit"
+                  style={{ background: '#ef4444', color: 'white' }}
+                  onClick={async () => {
+                    if (!confirm('Are you sure you want to permanently delete your account? This cannot be undone.')) return;
+                    setError('');
+                    setDeleting(true);
+                    try {
+                      const stored = localStorage.getItem('aq_user');
+                      const parsed = stored ? JSON.parse(stored) : null;
+                      const id = parsed?.id || profile?.id;
+                      if (!id) {
+                        setError('Missing user id');
+                        setDeleting(false);
+                        return;
+                      }
+                      const jwtToken = typeof window !== 'undefined' ? localStorage.getItem('aq_token') : null;
+                      const res = await fetch(`${API_BASE}/api/deleteUser`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id, jwtToken })
+                      });
+                      const data = await res.json();
+                      if (!res.ok || data.error) {
+                        setError(data.error || 'Failed to delete account');
+                        setDeleting(false);
+                        return;
+                      }
+                      // Clear local state and storage
+                      try { localStorage.removeItem('aq_user'); localStorage.removeItem('aq_token'); } catch (e) {}
+                      navigate('/signup');
+                    } catch (e) {
+                      setError('Network error. Please try again.');
+                    } finally {
+                      setDeleting(false);
+                    }
+                  }}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
               </div>
             </div>
