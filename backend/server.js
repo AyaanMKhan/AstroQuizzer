@@ -55,7 +55,7 @@ async function initializeData() {
     
     // Get today's date
     const now = new Date();
-    const year = 2024;
+    const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const date = `${year}-${month}-${day}`;
@@ -603,19 +603,21 @@ app.get('/api/questions/today', async (req, res) => {
     const { jwtToken } = req.query;
     const token = createJWT;
 
+    // JWT token is optional for viewing questions - we only use it for token refresh if provided
+    let validToken = false;
     try {
-      if (!jwtToken || token.isExpired(jwtToken)) {
-        return res.status(200).json({ error: 'The JWT is no longer valid', jwtToken: '' });
+      if (jwtToken && !token.isExpired(jwtToken)) {
+        validToken = true;
       }
     } catch (e) {
-      console.log('JWT check error:', e.message);
+      console.log('JWT check error (non-fatal):', e.message);
     }
 
     // Get today's date (matching APOD logic)
     const now = new Date();
-    const year = 2024; // Match APOD fetch logic
+    const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String('03'); //String(now.getDate()).padStart(2, '0');   //hardcoded atm to be the day = 03 because that's the only question we have rn
+    const day = String(now.getDate()).padStart(2, '0');
     const date = `${year}-${month}-${day}`;
 
     const questionDoc = await Question.findOne({ date }).lean();
@@ -636,13 +638,12 @@ app.get('/api/questions/today', async (req, res) => {
     }));
 
     var refreshedToken = null;
-    try
-    {
-      refreshedToken = token.refresh(jwtToken);
-    }
-    catch(e)
-    {
-      console.log(e.message);
+    if (validToken) {
+      try {
+        refreshedToken = token.refresh(jwtToken);
+      } catch(e) {
+        console.log('Token refresh error:', e.message);
+      }
     }
 
     return res.status(200).json({
@@ -682,9 +683,9 @@ app.post('/api/quiz/submit', async (req, res) => {
 
     // Get today's date
     const now = new Date();
-    const year = 2024;
+    const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String('03'); //String(now.getDate()).padStart(2, '0');   //hardcoded atm to be the day = 03 because that's the only question we have rn
+    const day = String(now.getDate()).padStart(2, '0');
     const date = `${year}-${month}-${day}`;
 
     // Get user
