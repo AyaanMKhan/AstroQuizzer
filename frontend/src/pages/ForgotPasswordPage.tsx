@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ForgotPasswordPage.css';
 
-export default function ForgotPasswordPage() {
+type Props = {
+  onForgotPasswordClick?: () => void | Promise<void>;
+}
+
+export default function ForgotPasswordPage({ onForgotPasswordClick }: Props) {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -60,11 +64,24 @@ export default function ForgotPasswordPage() {
         <div className="content">
           <div className="text">
             <h2>Forgot Password</h2>
-            {success ? (
-              <p style={{ color: '#4ade80' }}>If that email exists, a reset link has been sent. Please check your email.</p>
-            ) : (
-              <p>Enter your email address and we'll send you a link to reset your password.</p>
-            )}
+                  {success ? (
+                    <>
+                      <p style={{ color: '#4ade80' }}>If that email exists, a reset link has been sent. Please check your email.</p>
+                      <div style={{ marginTop: 12 }}>
+                        <button
+                          className="btn"
+                          onClick={() => {
+                            if (onForgotPasswordClick) onForgotPasswordClick();
+                            else navigate('/login');
+                          }}
+                        >
+                          Back to Login
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <p>Enter your email address and we'll send you a link to reset your password.</p>
+                  )}
           </div>
           
           {error && <div style={{ color: '#e33', marginBottom: 12 }}>{error}</div>}
