@@ -90,7 +90,7 @@ export default function ProfilePage() {
         {loading ? (
           <div>Loading...</div>
         ) : (
-        <div className="card">
+        <div className="profile-card">
           <div className="header">
               <div className="avatar">{initials}</div>
               <h2>{fullName}</h2>
@@ -117,7 +117,7 @@ export default function ProfilePage() {
               <div className="item">
                 {!editingUsername ? (
                   <>
-                    <span>Username: {profile?.username}</span>
+                    <span>Username</span>
                     <button
                       className="edit"
                       onClick={() => {

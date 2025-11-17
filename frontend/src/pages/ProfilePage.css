@@ -71,7 +71,7 @@
   padding: 3rem;
 }
 
-.card {
+.profile-card {
   background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(10px);
   border-radius: 12px;
@@ -82,14 +82,14 @@
   z-index: 1;
 }
 
-.header {
+.profile-card .header {
   background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #06b6d4 100%);
   padding: 3rem 2rem;
   text-align: center;
   color: white;
 }
 
-.avatar {
+.profile-card .avatar {
   width: 100px;
   height: 100px;
   border-radius: 50%;
@@ -103,12 +103,12 @@
   border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
-.header h2 {
+.profile-card .header h2 {
   margin: 0 0 0.5rem;
   font-size: 2rem;
 }
 
-.header p {
+.profile-card .header p {
   margin: 0;
   opacity: 0.9;
 }
@@ -168,6 +168,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.75rem;
   padding: 1rem;
   background: #020617;
   border-radius: 8px;
