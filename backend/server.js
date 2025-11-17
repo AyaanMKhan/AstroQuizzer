@@ -77,7 +77,54 @@ app.post("/api/register", async (req, res) => {
     const rounds = parseInt(process.env.bcrypt_rounds || "12", 10);
     const passwordHash = await bcrypt.hash(password, rounds);
 
-    const u = await User.create({username, email, firstName, lastName, passwordHash, verified: false, quizzesTaken: 0, totalScore: 0, favoriteSign: favoriteSign || "Pisces"});
+    const user = await User.create({
+      username,
+      email,
+      firstName,
+      lastName,
+      passwordHash,
+      verified: false,
+      quizzesTaken: 0,
+      totalScore: 0,
+      dailyQuizCompleted: false,
+      currentDaysPoints: 0,
+    });
+
+    // Create email verification token and send verification email (best-effort)
+    try {
+      const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET || process.env.ACCESS_TOKEN_SECRET;
+      if (secret) {
+        const verificationToken = jwt.sign({ email }, secret, { expiresIn: '1d' });
+        const frontendUrl = (process.env.FRONTEND_URL || 'http://localhost:5001').replace(/\/$/, ''); // Remove trailing slash
+        const verifyLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
+
+        // Configure transporter if credentials are provided
+        if (process.env.RESEND_API_KEY) {
+          //const { Resend } = require('resend'); // or import { Resend } from 'resend' if using ESM
+          //const resend = new Resend(process.env.RESEND_API_KEY);
+
+          await resend.emails.send({
+            from: 'AstroQuizzer <noreply@astroquizzer.xyz>',
+            to: email,
+            subject: 'Verify your AstroQuizzer email',
+            html: `
+              <p>Hi ${firstName},</p>
+              <p>Thanks for creating an AstroQuizzer account. Please verify your email by clicking the link below:</p>
+              <p><a href="${verifyLink}">Verify email</a></p>
+              <p>This link expires in 24 hours.</p>
+            `,
+          });
+
+          console.log(`✅ Verification email sent via Resend to ${email}`);
+        } else {
+          console.warn('RESEND_API_KEY not set — skipping verification email send');
+        }
+      } else {
+        console.warn('No ACCESS_TOKEN_SECRET/JWT_SECRET configured — skipping verification token generation');
+      }
+    } catch (emailErr) {
+      console.error('Error while attempting to send verification email:', emailErr.message || emailErr);
+    }
 
     return res.status(200).json({
       id: u._id,
@@ -136,6 +183,82 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+app.post("/api/forgot-password", async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: "No account found with that email" });
+
+    // Create a short-lived reset token
+    const resetToken = jwt.sign(
+      { email },
+      process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5001").replace(/\/$/, ''); // Remove trailing slash
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    if (!process.env.RESEND_API_KEY) {
+      console.warn("RESEND_API_KEY not set — skipping password reset email send");
+      return res.status(500).json({ error: "Email service not configured" });
+    }
+
+    // Send email via Resend
+    await resend.emails.send({
+      from: "AstroQuizzer <noreply@astroquizzer.xyz>",
+      to: email,
+      subject: "Reset Your Password",
+      html: `
+        <h3>Password Reset Request</h3>
+        <p>Click the link below to reset your password (valid for 15 minutes):</p>
+        <a href="${resetLink}" target="_blank">${resetLink}</a>
+      `,
+    });
+
+    console.log(`✅ Password reset email sent via Resend to ${email}`);
+    return res.status(200).json({ message: "Password reset email sent" });
+  } catch (err) {
+    console.error("Forgot password error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
+app.post("/api/reset-password", async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: "Token and new password are required" });
+    }
+
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET);
+    const { email } = decoded;
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(400).json({ error: "Invalid token" });
+
+    // Hash the new password
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    user.passwordHash = passwordHash;
+    // Clear any old plaintext password
+    user.password = undefined;
+    await user.save();
+
+    res.status(200).json({ message: "Password reset successful!" });
+  } catch (err) {
+    console.error("Reset password error:", err);
+    if (err.name === 'TokenExpiredError') {
+      return res.status(400).json({ error: "Token has expired. Please request a new reset link." });
+    }
+    if (err.name === 'JsonWebTokenError') {
+      return res.status(400).json({ error: "Invalid token" });
+    }
+    res.status(400).json({ error: "Invalid or expired token" });
+  }
+});
+
+
+// Leaderboard
 app.post('/api/leaderboard', async (req, res) => {
   try {
     const { _id } = req.body || {};
