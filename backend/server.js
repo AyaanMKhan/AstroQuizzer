@@ -613,19 +613,12 @@ app.get('/api/questions/today', async (req, res) => {
       console.log('JWT check error (non-fatal):', e.message);
     }
 
-    // Get today's date (matching APOD logic)
-    const now = new Date();
-    const year = 2024;
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const date = `${year}-${month}-${day}`;
-
-    const questionDoc = await Question.findOne({ date }).lean();
+    // Fetch the single question document (there will only be one at a time)
+    const questionDoc = await Question.findOne().lean();
     
     if (!questionDoc || !questionDoc.questions || questionDoc.questions.length === 0) {
       return res.status(404).json({ 
-        error: 'Questions not available for today',
-        date 
+        error: 'Questions not available',
       });
     }
 
@@ -681,13 +674,6 @@ app.post('/api/quiz/submit', async (req, res) => {
       return res.status(400).json({ error: 'Missing userId or invalid answers array (must be 5 answers)' });
     }
 
-    // Get today's date
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const date = `${year}-${month}-${day}`;
-
     // Get user
     const user = await User.findById(userId);
     if (!user) {
@@ -703,10 +689,10 @@ app.post('/api/quiz/submit', async (req, res) => {
       });
     }
 
-    // Get today's questions
-    const questionDoc = await Question.findOne({ date }).lean();
+    // Get the single question document (there will only be one at a time)
+    const questionDoc = await Question.findOne().lean();
     if (!questionDoc || !questionDoc.questions || questionDoc.questions.length !== 5) {
-      return res.status(404).json({ error: 'Questions not available for today' });
+      return res.status(404).json({ error: 'Questions not available' });
     }
 
     // Calculate score
