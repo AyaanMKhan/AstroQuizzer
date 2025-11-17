@@ -112,16 +112,60 @@ export default function ProfilePage() {
             <div className="list">
               <div className="item">
                 <span>Username</span>
-                <button className="edit">Edit</button>
+                <button
+                  className="edit"
+                  onClick={async () => {
+                    const newUsername = window.prompt('Enter new username', profile?.username || '');
+                    if (!newUsername) return;
+                    try {
+                      setError('');
+                      const stored = localStorage.getItem('aq_user');
+                      const parsed = stored ? JSON.parse(stored) : null;
+                      const id = parsed?.id || profile?.id;
+                      if (!id) { setError('Missing user id'); return; }
+                      const res = await fetch(`${API_BASE}/api/user/${id}/username`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: newUsername })
+                      });
+                      const data = await res.json();
+                      if (!res.ok || data.error) {
+                        setError(data.error || 'Failed to update username');
+                        return;
+                      }
+                      // Update local profile and storage
+                      setProfile(prev => prev ? { ...prev, username: data.username } : prev);
+                      try {
+                        const userRaw = localStorage.getItem('aq_user');
+                        if (userRaw) {
+                          const u = JSON.parse(userRaw);
+                          u.username = data.username;
+                          localStorage.setItem('aq_user', JSON.stringify(u));
+                        }
+                      } catch (e) {}
+                      alert('Username updated successfully');
+                    } catch (e) {
+                      setError('Network error. Please try again.');
+                    }
+                  }}
+                >
+                  Edit
+                </button>
               </div>
+
               <div className="item">
                 <span>Password</span>
-                <button className="edit">Change</button>
+                <button
+                  className="edit"
+                  onClick={() => {
+                    // Navigate to the forgot-password flow so user can request a reset email
+                    navigate('/forgot-password');
+                  }}
+                >
+                  Change
+                </button>
               </div>
-              <div className="item">
-                <span>Email</span>
-                <button className="edit">Edit</button>
-              </div>
+
               <div className="item">
                 <span style={{ color: '#ef4444' }}>Delete Account</span>
                 <button

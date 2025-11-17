@@ -1,6 +1,7 @@
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import HomePage from './pages/HomePage';
+import ApodPage from './pages/ApodPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import CreateAccountPage from './pages/CreateAccountPage';
@@ -25,8 +26,10 @@ export default function App() {
             onSignUpClick={() => navigate('/signup')}
             onLeaderboardClick={() => navigate('/leaderboard')}
             onProfileClick={() => navigate('/profile')}
+            onApodClick={() => navigate('/apod')}
           />
         } />
+        <Route path="/apod" element={<ApodPage />} />
         <Route path="/login" element={
           <LoginPage 
             onSignUpClick={() => navigate('/signup')}
