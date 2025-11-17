@@ -130,6 +130,16 @@
   background: rgba(37, 99, 235, 0.25);
 }
 
+/* Make highlighted row text stand out */
+.row.highlight .col {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.row.highlight .col:last-of-type {
+  color: #2563eb;
+}
+
 .row:last-child {
   border-bottom: none;
 }

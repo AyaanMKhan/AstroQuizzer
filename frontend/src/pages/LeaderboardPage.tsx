@@ -112,7 +112,7 @@ export default function LeaderboardPage() {
             <span className="col">Score</span>
           </div>
             {rows.map((player) => (
-            <div key={player.rank} className="row">
+            <div key={player.rank} className={"row" + (isCurrentUser(player) ? ' highlight' : '')}>
               <span className="col">{player.rank}</span>
                 <span className="col">{player.username}</span>
                 <span className="col">{player.totalScore}</span>
