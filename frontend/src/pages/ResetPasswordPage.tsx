@@ -12,7 +12,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
-  const API_BASE = 'https://astroquizzer.xyz';
+  const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
   useEffect(() => {
     try {
