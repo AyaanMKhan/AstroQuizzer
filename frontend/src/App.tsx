@@ -4,6 +4,7 @@ import HomePage from './pages/HomePage';
 import ApodPage from './pages/ApodPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 import CreateAccountPage from './pages/CreateAccountPage';
 import LeaderboardPage from './pages/LeaderboardPage';
 import ProfilePage from './pages/ProfilePage';
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/signup" element={<CreateAccountPage onSignInClick={() => navigate('/login')} />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage onForgotPasswordClick={() => navigate('/login')}/>} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/leaderboard" element={<LeaderboardPage />} />
         <Route path="/profile" element={<ProfilePage />} />
       </Routes>
