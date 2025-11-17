@@ -42,12 +42,13 @@ export default function ApodPage() {
   }, []);
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
+    if (!dateString) return '';
+    const parts = dateString.split('-');
+    if (parts.length < 3) return dateString;
+    const monthIndex = parseInt(parts[1], 10) - 1;
+    const day = parseInt(parts[2], 10);
+    const monthName = new Date(2025, monthIndex, day).toLocaleString('en-US', { month: 'long' });
+    return `${monthName} ${day}, 2025`;
   };
 
   return (
