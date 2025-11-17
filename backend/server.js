@@ -241,25 +241,39 @@ app.post("/api/register", async (req, res) => {
 
 app.get("/api/verify-email", async (req, res) => {
   try {
-    const { token } = req.query;
+    const { token } = req.query || req.body || {};
     if (!token) return res.status(400).json({ error: "Missing token" });
 
+    // Prefer the configured secret for verification, but in development
+    // allow decoding the token without verification so the flow still works
+    // if the secret wasn't configured. WARNING: decoding without verifying
+    // is insecure and must NOT be used in production.
+    const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET;
+    let decoded;
+    try {
+      if (secret) {
+        decoded = jwt.verify(String(token), secret);
+      } else {
+        if (process.env.NODE_ENV === 'production') {
+          return res.status(500).json({ error: 'Server token secret not configured' });
+        }
+        console.warn('No ACCESS_TOKEN_SECRET configured — decoding token without verification (development only)');
+        decoded = jwt.decode(String(token));
+      }
+    } catch (err) {
+      console.error('Verify token error:', err?.message || err);
+      return res.status(400).json({ error: 'Invalid or expired token' });
+    }
 
-      const secret = process.env.ACCESS_TOKEN_SECRET || process.env.JWT_SECRET;
-      if (!secret) return res.status(500).json({ error: 'Server token secret not configured' });
-
-      const decoded = jwt.verify(String(token), secret);
-      const { email } = decoded;
-
+    const { email } = decoded || {};
+    if (!email) return res.status(400).json({ error: 'Invalid token payload' });
 
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ error: "Invalid token" });
     if (user.verified) return res.status(200).json({ message: "Email already verified" });
 
-
     user.verified = true;
     await user.save();
-
 
     return res.status(200).json({ message: "Email successfully verified!" });
   } catch (err) {
