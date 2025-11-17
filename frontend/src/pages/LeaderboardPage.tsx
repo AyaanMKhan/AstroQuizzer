@@ -22,6 +22,17 @@ export default function LeaderboardPage() {
   const [error, setError] = useState('');
   const isLoggedIn = typeof window !== 'undefined' && !!localStorage.getItem('aq_user');
 
+  const isCurrentUser = (player: LeaderboardRow) => {
+    if (!currentUser) return false;
+    try {
+      if (currentUser.username && player.username && String(currentUser.username) === String(player.username)) return true;
+      if (currentUser.rank && player.rank && Number(currentUser.rank) === Number(player.rank)) return true;
+    } catch (e) {
+      return false;
+    }
+    return false;
+  };
+
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
   useEffect(() => {
