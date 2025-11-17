@@ -323,6 +323,14 @@ app.post("/api/login", async (req, res) => {
     });
     //return res.status(200).json(ret);
 
+    return res.status(200).json({
+      id: user._id,
+      username: user.username,
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      jwtToken: accessToken,   // <-- return token in body (handout style)
+      error: ""
+    });
   } catch (err) {
     console.error("❌ Login error:", err.message);
     return res.status(500).json({ error: "Server error" });
