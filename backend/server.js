@@ -615,7 +615,7 @@ app.get('/api/questions/today', async (req, res) => {
 
     // Get today's date (matching APOD logic)
     const now = new Date();
-    const year = now.getFullYear();
+    const year = 2024;
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
     const date = `${year}-${month}-${day}`;
