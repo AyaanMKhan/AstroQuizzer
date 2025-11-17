@@ -811,7 +811,7 @@ app.post('/api/deleteUser', async (req, res) => {
   // Token check
   try
   {
-    if(isExpired(jwtToken)) 
+    if (createJWT && createJWT.isExpired && createJWT.isExpired(jwtToken)) 
     {
       var r = {error:'The JWT is no longer valid', jwtToken: ''};
       res.status(200).json(r);
@@ -828,7 +828,7 @@ app.post('/api/deleteUser', async (req, res) => {
 
   // Identifies user who requested deletion
   const payload = jwt.decode(jwtToken);
-  const currentId = payload?.userId;
+  const currentId = payload?.id;
   // Makes sure user exists and is the correct user requesting deletion
   if (!currentId || String(currentId) !== String(id)) 
   {
