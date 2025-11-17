@@ -13,7 +13,10 @@
     "list-models": "node scripts/listGeminiModels.js",
     "test-search": "node scripts/testGoogleSearch.js",
     "reset-daily-quiz": "node scripts/resetDailyQuiz.js",
-    "remove-user-fields": "node scripts/removeFieldsFromUsers.js"
+    "remove-user-fields": "node scripts/removeFieldsFromUsers.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",

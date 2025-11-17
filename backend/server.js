@@ -136,20 +136,20 @@ initResetDailyQuizCron();
 
 // Register
 // model
-const userSchema = new mongoose.Schema({
-  username:     {type: String, required: true, unique: true, trim: true },
-  email:        { type: String, required: true, unique: true, trim: true, lowercase: true },
-  firstName:    { type: String, required: true },
-  lastName:     { type: String, required: true },
-  //default fields
-  verified:     { type: Boolean, default: false },
-  quizzesTaken: { type: Number, default: 0, min: 0 },
-  totalScore:   { type: Number, default: 0, min: 0 },
-  // for old plaintext passwords
-  password:     { type: String, select: false },
-  dailyQuizCompleted: {type: Boolean, default: false},
-  currentDaysPoints:  {type: Number, default: 0, min: 0}
-}, {timestamps: true});
+// const userSchema = new mongoose.Schema({
+//   username:     {type: String, required: true, unique: true, trim: true },
+//   email:        { type: String, required: true, unique: true, trim: true, lowercase: true },
+//   firstName:    { type: String, required: true },
+//   lastName:     { type: String, required: true },
+//   //default fields
+//   verified:     { type: Boolean, default: false },
+//   quizzesTaken: { type: Number, default: 0, min: 0 },
+//   totalScore:   { type: Number, default: 0, min: 0 },
+//   // for old plaintext passwords
+//   password:     { type: String, select: false },
+//   dailyQuizCompleted: {type: Boolean, default: false},
+//   currentDaysPoints:  {type: Number, default: 0, min: 0}
+// }, {timestamps: true});
 
 //const User = mongoose.model("User", userSchema);
 
@@ -428,6 +428,67 @@ app.post("/api/reset-password", async (req, res) => {
   }
 });
 
+// Delete User
+app.post('/api/deleteUser', async (req, res) => {
+  const {id, jwtToken} = req.body || {};
+  // id check
+  if(!id)
+  {
+    return res.status(200).json({error: 'Missing id', jwtToken: ''});
+  }
+  // Missing jwt token check
+  if (!jwtToken) 
+  {
+    return res.status(200).json({ error: 'Missing JWT', jwtToken: '' });
+  }
+
+  // Token check
+  try
+  {
+    if(isExpired(jwtToken)) 
+    {
+      var r = {error:'The JWT is no longer valid', jwtToken: ''};
+      res.status(200).json(r);
+      return;
+    }
+  }
+  catch (e)
+  {
+    console.log(e.message);
+    var r = {error:'The JWT is no longer valid', jwtToken: ''};
+    res.status(200).json(r);
+    return;
+  }
+
+  // Identifies user who requested deletion
+  const payload = jwt.decode(jwtToken);
+  const currentId = payload?.userId;
+  // Makes sure user exists and is the correct user requesting deletion
+  if (!currentId || String(currentId) !== String(id)) 
+  {
+    return res.status(200).json({error: 'Not authorized to delete this user', jwtToken: ''});
+  }
+
+  // Makes sure it is valid MongoDB ObjectId string
+  if (!mongoose.Types.ObjectId.isValid(id)) 
+  {
+    return res.status(200).json({ error: 'Invalid user id', jwtToken: '' });
+  }
+
+  // Deletes user
+  try 
+  {
+    await User.deleteOne({_id: new mongoose.Types.ObjectId(id)});
+  } 
+  catch (err) 
+  {
+    console.log(err);
+    return res.status(200).json({error: 'Server error', jwtToken: ''});
+  }
+
+  // Logs out by returning empty token
+  return res.status(200).json({error: '', jwtToken: ''});
+});
 
 // Leaderboard
 app.post('/api/leaderboard', async (req, res) => {
@@ -762,7 +823,12 @@ app.get("/", (_req, res) => {
   res.send("Backend is running successfully 🚀");
 });
 
-// Start Server
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
-});
+export default app;
+
+if(!process.env.JEST_WORKER_ID)
+{
+  // Start Server
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
+  });
+}
