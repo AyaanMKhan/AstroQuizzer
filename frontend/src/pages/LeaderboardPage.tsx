@@ -31,7 +31,8 @@ export default function LeaderboardPage() {
       try {
         const stored = localStorage.getItem('aq_user');
         const parsed = stored ? JSON.parse(stored) : null;
-        const body = parsed?.id ? { _id: parsed.id } : {};
+        const jwtToken = typeof window !== 'undefined' ? localStorage.getItem('aq_token') : null;
+        const body = parsed?.id ? { _id: parsed.id, jwtToken } : { jwtToken };
         const res = await fetch(`${API_BASE}/api/leaderboard`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

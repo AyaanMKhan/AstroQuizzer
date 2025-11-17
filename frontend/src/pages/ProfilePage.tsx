@@ -35,7 +35,8 @@ export default function ProfilePage() {
           setLoading(false);
           return;
         }
-        const res = await fetch(`${API_BASE}/api/user/${parsed.id}`);
+        const jwtToken = typeof window !== 'undefined' ? localStorage.getItem('aq_token') : null;
+        const res = await fetch(`${API_BASE}/api/user/${parsed.id}${jwtToken ? `?jwtToken=${encodeURIComponent(jwtToken)}` : ''}`);
         const data = await res.json();
         if (!res.ok || data.error) {
           setError(data.error || 'Failed to load profile');
