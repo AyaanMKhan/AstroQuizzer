@@ -146,14 +146,23 @@ app.post("/api/register", async (req, res) => {
 // API Login
 app.post("/api/login", async (req, res) => {
   try {
-    const { username, password } = req.body || {};
-    if (!username || !password) {
-      return res.status(400).json({error: "Missing username or password"});
+    // Accept either `email` or `username` from clients
+    const { username, email, password } = req.body || {};
+    const identifier = (email || username || "").trim();
+    if (!identifier || !password) {
+      return res.status(400).json({ error: "Missing username/email or password" });
     }
 
-    // only need for plaintext passwords
-    const user = await User.findOne({username: String(username).trim() }).select("+password");
-    if (!user) return res.status(400).json({error: "Incorrect username or password"});
+    // Lookup user by email if identifier looks like an email, otherwise try username first then email
+    let user = null;
+    const normalized = identifier.toLowerCase();
+    if (identifier.includes("@")) {
+      user = await User.findOne({ email: normalized }).select("+password");
+    } else {
+      user = await User.findOne({ $or: [{ username: identifier }, { email: normalized }] }).select("+password");
+    }
+
+    if (!user) return res.status(400).json({ error: "Incorrect username or password" });
 
     let ok = false;
     if (user.passwordHash) {
@@ -169,7 +178,7 @@ app.post("/api/login", async (req, res) => {
       }
     }
 
-    if (!ok) return res.status(400).json({error: "Incorrect username or password"});
+    if (!ok) return res.status(400).json({ error: "Incorrect username or password" });
 
     return res.status(200).json({
       id: user._id,
@@ -179,7 +188,7 @@ app.post("/api/login", async (req, res) => {
     });
   } catch (err) {
     console.error("Login error:", err);
-    return res.status(500).json({error: "Server error"});
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
