@@ -24,6 +24,9 @@ export default function ProfilePage() {
   const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
   const [deleting, setDeleting] = useState(false);
+  const [editingUsername, setEditingUsername] = useState(false);
+  const [newUsername, setNewUsername] = useState('');
+  const [updatingUsername, setUpdatingUsername] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -63,6 +66,7 @@ export default function ProfilePage() {
         <div className="nav">
           <div className="logo" onClick={() => navigate('/home')} style={{ cursor: 'pointer' }}>AstroQuizzer</div>
           <div className="btns">
+            <button className="btn apod" onClick={() => navigate('/apod')}>Today's Picture</button>
             <button className="btn leaderboard" onClick={() => navigate('/leaderboard')}>Leaderboard</button>
             <button className="btn profile active">Profile</button>
             {isLoggedIn ? (
@@ -111,46 +115,141 @@ export default function ProfilePage() {
             <h3>Account Settings</h3>
             <div className="list">
               <div className="item">
-                <span>Username</span>
-                <button
-                  className="edit"
-                  onClick={async () => {
-                    const newUsername = window.prompt('Enter new username', profile?.username || '');
-                    if (!newUsername) return;
-                    try {
-                      setError('');
-                      const stored = localStorage.getItem('aq_user');
-                      const parsed = stored ? JSON.parse(stored) : null;
-                      const id = parsed?.id || profile?.id;
-                      if (!id) { setError('Missing user id'); return; }
-                      const res = await fetch(`${API_BASE}/api/user/${id}/username`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: newUsername })
-                      });
-                      const data = await res.json();
-                      if (!res.ok || data.error) {
-                        setError(data.error || 'Failed to update username');
-                        return;
-                      }
-                      // Update local profile and storage
-                      setProfile(prev => prev ? { ...prev, username: data.username } : prev);
-                      try {
-                        const userRaw = localStorage.getItem('aq_user');
-                        if (userRaw) {
-                          const u = JSON.parse(userRaw);
-                          u.username = data.username;
-                          localStorage.setItem('aq_user', JSON.stringify(u));
+                {!editingUsername ? (
+                  <>
+                    <span>Username: {profile?.username}</span>
+                    <button
+                      className="edit"
+                      onClick={() => {
+                        setEditingUsername(true);
+                        setNewUsername(profile?.username || '');
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      type="text"
+                      value={newUsername}
+                      onChange={(e) => setNewUsername(e.target.value)}
+                      onKeyDown={async (e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (!newUsername.trim()) {
+                            setEditingUsername(false);
+                            return;
+                          }
+                          setUpdatingUsername(true);
+                          try {
+                            setError('');
+                            const stored = localStorage.getItem('aq_user');
+                            const parsed = stored ? JSON.parse(stored) : null;
+                            const id = parsed?.id || profile?.id;
+                            if (!id) { setError('Missing user id'); setUpdatingUsername(false); return; }
+                            const res = await fetch(`${API_BASE}/api/user/${id}/username`, {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ username: newUsername.trim() })
+                            });
+                            const data = await res.json();
+                            if (!res.ok || data.error) {
+                              setError(data.error || 'Failed to update username');
+                              setUpdatingUsername(false);
+                              return;
+                            }
+                            setProfile(prev => prev ? { ...prev, username: data.username } : prev);
+                            try {
+                              const userRaw = localStorage.getItem('aq_user');
+                              if (userRaw) {
+                                const u = JSON.parse(userRaw);
+                                u.username = data.username;
+                                localStorage.setItem('aq_user', JSON.stringify(u));
+                              }
+                            } catch (e) {}
+                            setEditingUsername(false);
+                          } catch (e) {
+                            setError('Network error. Please try again.');
+                          } finally {
+                            setUpdatingUsername(false);
+                          }
+                        } else if (e.key === 'Escape') {
+                          setEditingUsername(false);
+                          setNewUsername('');
                         }
-                      } catch (e) {}
-                      alert('Username updated successfully');
-                    } catch (e) {
-                      setError('Network error. Please try again.');
-                    }
-                  }}
-                >
-                  Edit
-                </button>
+                      }}
+                      autoFocus
+                      disabled={updatingUsername}
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem',
+                        background: '#020617',
+                        border: '1px solid #2563eb',
+                        borderRadius: '4px',
+                        color: '#e2e8f0',
+                        fontSize: '1rem'
+                      }}
+                    />
+                    <button
+                      className="edit"
+                      onClick={async () => {
+                        if (!newUsername.trim()) {
+                          setEditingUsername(false);
+                          return;
+                        }
+                        setUpdatingUsername(true);
+                        try {
+                          setError('');
+                          const stored = localStorage.getItem('aq_user');
+                          const parsed = stored ? JSON.parse(stored) : null;
+                          const id = parsed?.id || profile?.id;
+                          if (!id) { setError('Missing user id'); setUpdatingUsername(false); return; }
+                          const res = await fetch(`${API_BASE}/api/user/${id}/username`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ username: newUsername.trim() })
+                          });
+                          const data = await res.json();
+                          if (!res.ok || data.error) {
+                            setError(data.error || 'Failed to update username');
+                            setUpdatingUsername(false);
+                            return;
+                          }
+                          setProfile(prev => prev ? { ...prev, username: data.username } : prev);
+                          try {
+                            const userRaw = localStorage.getItem('aq_user');
+                            if (userRaw) {
+                              const u = JSON.parse(userRaw);
+                              u.username = data.username;
+                              localStorage.setItem('aq_user', JSON.stringify(u));
+                            }
+                          } catch (e) {}
+                          setEditingUsername(false);
+                        } catch (e) {
+                          setError('Network error. Please try again.');
+                        } finally {
+                          setUpdatingUsername(false);
+                        }
+                      }}
+                      disabled={updatingUsername}
+                      style={{ background: '#22c55e' }}
+                    >
+                      {updatingUsername ? 'Saving...' : 'Confirm'}
+                    </button>
+                    <button
+                      className="edit"
+                      onClick={() => {
+                        setEditingUsername(false);
+                        setNewUsername('');
+                      }}
+                      disabled={updatingUsername}
+                      style={{ background: '#64748b' }}
+                    >
+                      Cancel
+                    </button>
+                  </>
+                )}
               </div>
 
               <div className="item">
