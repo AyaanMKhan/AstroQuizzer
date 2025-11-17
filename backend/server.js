@@ -153,7 +153,7 @@ initResetDailyQuizCron();
 
 //const User = mongoose.model("User", userSchema);
 
-// API Register
+// Register API
 app.post("/api/register", async (req, res) => {
   try {
     let { username, password, firstName, lastName, email } = req.body || {};
@@ -222,6 +222,7 @@ app.post("/api/register", async (req, res) => {
       console.error('Error while attempting to send verification email:', emailErr.message || emailErr);
     }
 
+    // (handout typically doesn't auto-login here; leave token out)
     return res.status(200).json({
       id: user._id,
       username: user.username,
@@ -232,6 +233,7 @@ app.post("/api/register", async (req, res) => {
   } catch (err) {
     if (err?.code === 11000) {
       const key = Object.keys(err.keyPattern || {})[0] || "field";
+      return res.status(400).json({ error: `${key} already in use` });
       return res.status(400).json({ error: `${key} already in use` });
     }
     console.error("❌ Register error:", err.message);
@@ -528,11 +530,7 @@ app.post('/api/leaderboard', async (req, res) => {
       const userIndex = users.findIndex(u => u._id.toString() === _id);
       if (userIndex !== -1) {
         const u = users[userIndex];
-        responseUser = {
-          username: u.username,
-          score: u.totalScore,
-          rank: userIndex + 1
-        };
+        responseUser = { username: u.username, score: u.totalScore, rank: userIndex + 1 };
       }
     }
 
@@ -603,8 +601,8 @@ app.get('/api/user/:id', async (req, res) => {
     return res.status(200).json({
       id: user._id,
       username: user.username,
-      firstName: user.firstName || '',
-      lastName: user.lastName || '',
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
       email: user.email,
       totalScore: user.totalScore || 0,
       quizzesTaken: user.quizzesTaken || 0,
